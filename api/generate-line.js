@@ -22,13 +22,17 @@ module.exports = async (req, res) => {
             {
                 role: 'system',
                 content: `
-You are to create a podcast conversation between four people: two females (Sarah and Rachel) and two males (Tom and Mike). They are discussing the following text:
+You are to create a podcast conversation between four people: two females (**Sarah** and **Rachel**) and two males (**Tom** and **Mike**). They are discussing the following text:
 
 "${topicText}"
 
 The conversation should be natural and include interruptions, fillers like "um", "ah", "you know", etc. Each person should bring their thoughts, reasoning, and exploration about the text. Ensure the conversation feels authentic, as if on a real podcast.
 
-Provide the next line in the following format:
+**Important Instructions:**
+
+- Only use the names **Sarah**, **Rachel**, **Tom**, or **Mike** as the speaker names.
+- Do not introduce any other speaker names like "Speaker" or "Moderator".
+- Provide the next line in the following format:
 
 Speaker: Dialogue
 
@@ -56,14 +60,16 @@ Only provide the next line without repeating the previous conversation.
                 model: 'gpt-3.5-turbo',
                 messages: messages,
                 max_tokens: 100,
-                temperature: 0.7,
+                temperature: 0.5, // Adjusted for more deterministic output
                 stop: null
             })
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(`OpenAI API Error: ${JSON.stringify(error)}`);
+            console.error('OpenAI API Error:', error);
+            res.status(500).send('Error generating next line.');
+            return;
         }
 
         const data = await response.json();
