@@ -51,7 +51,7 @@ Now, please provide the full conversation.
             },
             body: JSON.stringify({
                 model: 'gpt-4o',
-                messages: messages,
+                messages: prompt,
                 max_tokens: 1500,
                 temperature: 0.8, // Lowered for more deterministic output
                 stop: null
