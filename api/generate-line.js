@@ -62,9 +62,9 @@ Only provide the next line without repeating the previous conversation.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: 'gpt-4o',
                 messages: messages,
-                max_tokens: 100,
+                max_tokens: 150,
                 temperature: 0.3, // Lowered for more deterministic output
                 stop: null
             })
