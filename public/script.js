@@ -1,4 +1,5 @@
 // public/script.js
+
 const generateBtn = document.getElementById('generate-btn');
 const textInput = document.getElementById('text-input');
 const progressDiv = document.getElementById('progress');
@@ -8,7 +9,7 @@ generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
 
     if (text === '') {
-        alert('Please enter some text.');
+        alert('Please enter a topic for the podcast.');
         return;
     }
 
@@ -27,42 +28,47 @@ generateBtn.addEventListener('click', () => {
 });
 
 async function startPodcastGeneration(text) {
-    progressDiv.textContent = 'Starting podcast generation...';
+    progressDiv.textContent = 'Generating conversation...';
     conversationDiv.innerHTML = '';
-    let conversationHistory = [];
     let audioBuffers = [];
 
-    const maxTurns = 10; // Define how many turns you want in the conversation
+    // Step 1: Generate the full conversation
+    const conversationText = await generateFullConversation(text);
 
-    for (let i = 0; i < maxTurns; i++) {
-        // Step 1: Generate the next line
-        const nextLine = await generateNextLine(text, conversationHistory);
-        if (!nextLine) {
-            break;
-        }
+    // Step 2: Parse the conversation
+    const conversation = parseConversation(conversationText);
 
-        conversationHistory.push(nextLine);
-
-        // Update the UI with the new line
+    // Display the conversation
+    conversation.forEach(line => {
         const lineDiv = document.createElement('div');
-        lineDiv.textContent = `${nextLine.speaker}: ${nextLine.dialogue}`;
+        let content = `${line.speaker}: ${line.dialogue}`;
+        if (line.actions && line.actions.length > 0) {
+            content += ' ' + line.actions.map(a => `[${a}]`).join(' ');
+        }
+        lineDiv.textContent = content;
         conversationDiv.appendChild(lineDiv);
+    });
 
-        // Step 2: Generate audio for the line
-        const audioBuffer = await generateAudioBuffer(nextLine.speaker, nextLine.dialogue);
-
-        // Store the audio buffer
-        audioBuffers.push(audioBuffer);
-
-        // Update progress
-        progressDiv.textContent = `Generated ${i + 1} of ${maxTurns} lines`;
+    // Step 3: Generate audio for each line
+    for (let i = 0; i < conversation.length; i++) {
+        const line = conversation[i];
+        progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
+        try {
+            const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, line.actions);
+            audioBuffers.push(audioBuffer);
+        } catch (error) {
+            console.error(`Error generating audio for line ${i + 1}:`, error);
+            alert(`Error generating audio for line ${i + 1}. Check console for details.`);
+            return;
+        }
     }
 
-    progressDiv.textContent = 'All audio generated. Click the play button to listen.';
+    progressDiv.textContent = 'All audio generated. Preparing to play...';
 
-    // Show play button
+    // Step 4: Create and display the play button
     const playButton = document.createElement('button');
     playButton.textContent = 'Play Podcast';
+    playButton.classList.add('play-button');
     playButton.onclick = () => {
         playButton.disabled = true;
         playConcatenatedAudio(audioBuffers);
@@ -70,31 +76,63 @@ async function startPodcastGeneration(text) {
     conversationDiv.appendChild(playButton);
 }
 
-async function generateNextLine(topicText, conversationHistory) {
-    const response = await fetch('/api/generate-line', {
+async function generateFullConversation(topicText) {
+    const response = await fetch('/api/generate-conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topicText, conversationHistory })
+        body: JSON.stringify({ topicText })
     });
 
     if (!response.ok) {
-        throw new Error('Error generating next line.');
+        const errorText = await response.text();
+        throw new Error(`Error generating conversation: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log(`Received line: ${data.nextLine.speaker}: ${data.nextLine.dialogue}`);
-    return data.nextLine;
+    return data.conversationText;
 }
 
-async function generateAudioBuffer(speaker, dialogue) {
+function parseConversation(conversationText) {
+    const lines = conversationText.split('\n').filter(line => line.trim() !== '');
+    const conversation = [];
+
+    lines.forEach(line => {
+        // Match speaker and dialogue
+        const match = line.match(/^(\w+):\s*(.+)$/);
+        if (match) {
+            let speaker = match[1].trim();
+            let dialogue = match[2].trim();
+
+            // Extract actions or expressions in brackets
+            const actionMatches = dialogue.match(/\[(.*?)\]/g);
+            const actions = actionMatches ? actionMatches.map(a => a.replace(/[\[\]]/g, '')) : [];
+
+            // Remove actions from dialogue
+            dialogue = dialogue.replace(/\[(.*?)\]/g, '').trim();
+
+            conversation.push({ speaker, dialogue, actions });
+        }
+    });
+
+    return conversation;
+}
+
+async function generateAudioBuffer(speaker, dialogue, actions) {
+    // Combine dialogue and actions
+    let fullDialogue = dialogue;
+    if (actions && actions.length > 0) {
+        fullDialogue += ' ' + actions.map(a => `[${a}]`).join(' ');
+    }
+
     const response = await fetch('/api/generate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speaker, dialogue })
+        body: JSON.stringify({ speaker, dialogue: fullDialogue })
     });
 
     if (!response.ok) {
-        throw new Error('Error generating audio.');
+        const errorText = await response.text();
+        throw new Error(`Error generating audio: ${errorText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -124,12 +162,12 @@ function playConcatenatedAudio(audioBuffers) {
 
     // Copy each audio buffer into the concatenated buffer
     let offset = 0;
-    for (const buffer of audioBuffers) {
+    audioBuffers.forEach(buffer => {
         for (let channel = 0; channel < numberOfChannels; channel++) {
             concatenatedBuffer.getChannelData(channel).set(buffer.getChannelData(channel), offset);
         }
         offset += buffer.length;
-    }
+    });
 
     // Play the concatenated buffer
     const source = audioContext.createBufferSource();
