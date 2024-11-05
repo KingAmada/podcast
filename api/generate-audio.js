@@ -28,13 +28,16 @@ module.exports = async (req, res) => {
         // Trim and validate speaker name
         const trimmedSpeaker = speaker.trim();
 
+        // Convert speaker name to proper case
+        const formattedSpeaker = trimmedSpeaker.charAt(0).toUpperCase() + trimmedSpeaker.slice(1).toLowerCase();
+
         // Check if the speaker is one of the expected names
-        const voice = speakerVoices[trimmedSpeaker];
+        const voice = speakerVoices[formattedSpeaker];
 
         if (!voice) {
             // Handle unknown speaker names
-            console.error(`Unknown speaker: ${trimmedSpeaker}. Skipping this line.`);
-            res.status(400).send(`Unknown speaker: ${trimmedSpeaker}`);
+            console.error(`Unknown speaker: ${formattedSpeaker}. Skipping this line.`);
+            res.status(400).send(`Unknown speaker: ${formattedSpeaker}`);
             return;
         }
 
