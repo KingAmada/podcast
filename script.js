@@ -1,49 +1,41 @@
-const synth = window.speechSynthesis;
-const voiceSelect = document.getElementById('voice-select');
-const generateBtn = document.getElementById('generate-btn');
-const textInput = document.getElementById('text-input');
+// public/script.js
+document.getElementById('generate-btn').addEventListener('click', () => {
+    const text = document.getElementById('text-input').value.trim();
+    const voice = document.getElementById('voice-select').value;
+    const format = document.getElementById('format-select').value;
 
-function populateVoiceList() {
-    let voices = synth.getVoices();
-    if (!voices.length) {
-        // Some browsers may not load voices immediately
-        setTimeout(populateVoiceList, 100);
-        return;
-    }
-
-    voiceSelect.innerHTML = '';
-    voices.forEach((voice) => {
-        const option = document.createElement('option');
-        option.textContent = `${voice.name} (${voice.lang})`;
-        option.value = voice.name;
-        voiceSelect.appendChild(option);
-    });
-}
-
-populateVoiceList();
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = populateVoiceList;
-}
-
-generateBtn.addEventListener('click', () => {
-    const text = textInput.value.trim();
     if (text === '') {
         alert('Please enter some text.');
         return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    const selectedVoiceName = voiceSelect.value;
-    const voices = synth.getVoices();
-    const selectedVoice = voices.find((voice) => voice.name === selectedVoiceName);
+    // Show loading indicator
+    const generateBtn = document.getElementById('generate-btn');
+    generateBtn.textContent = 'Generating...';
+    generateBtn.disabled = true;
 
-    if (selectedVoice) {
-        utterance.voice = selectedVoice;
-    }
-
-    // Optional: Adjust pitch and rate
-    // utterance.pitch = 1; // Range between 0 and 2
-    // utterance.rate = 1;  // Range between 0.1 and 10
-
-    synth.speak(utterance);
+    fetch('/api/generate-speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice, format })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error generating speech.');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const audioUrl = URL.createObjectURL(blob);
+        const audioContainer = document.getElementById('audio-container');
+        audioContainer.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
+    })
+    .catch(error => {
+        console.error(error);
+        alert('An error occurred while generating speech.');
+    })
+    .finally(() => {
+        generateBtn.textContent = 'Generate Speech';
+        generateBtn.disabled = false;
+    });
 });
