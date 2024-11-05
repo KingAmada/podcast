@@ -21,9 +21,9 @@ module.exports = async (req, res) => {
         const speakerNames = speakers.map(s => s.name);
 
         const messages = [
-            {
-                role: 'system',
-                content: `
+    {
+        role: 'system',
+        content: `
 You are to create a podcast conversation between the following people:
 ${speakerNames.join(', ')}.
 
@@ -34,26 +34,27 @@ They are discussing the following topic:
 The conversation should be:
 
 - Natural and dynamic, with interruptions, overlaps, and varied speaker order.
-- Include fillers like "um", "ah", "you know", laughs, and expressions of emotion.
+- Include natural speech fillers like "um", "ah", "you know", "haha", "heh", "hmm", and expressions of emotion spelled out in the dialogue.
 - Each person's speech should reflect their personality and perspective.
 - The conversation should feel authentic, as if it's happening in real-time on a podcast.
-- Keep the conversation concise to fit within the response limit.
+- **Instead of using brackets for actions (e.g., [laughs]), spell out laughs and sounds directly in the dialogue.**
+- **Avoid using any bracketed annotations like [laughs], [sighs], [interrupting].**
 
 Format the conversation as follows:
 
 - Each line should start with the speaker's name, followed by a colon, and then their dialogue.
 - Indicate interruptions or overlaps using double dashes "--".
-- Include actions or expressions in brackets, e.g., [laughs], [sighs], [interrupting].
 
 Example:
 
 Sarah: You know, I was thinking--
-Mike: --thinking about the same thing! [laughs]
+Mike: --thinking about the same thing! Haha!
 
 Now, please provide the full conversation.
                 `
-            }
-        ];
+    }
+];
+
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
