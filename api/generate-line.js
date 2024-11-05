@@ -31,10 +31,15 @@ The conversation should be natural and include interruptions, fillers like "um",
 **Important Instructions:**
 
 - Only use the names **Sarah**, **Rachel**, **Tom**, or **Mike** as the speaker names.
-- Do not introduce any other speaker names like "Speaker" or "Moderator".
-- Provide the next line in the following format:
+- **Provide only one line of dialogue from a single speaker** per response.
+- Do not include other speakers' responses or any narration.
+- Format the response exactly as:
 
 Speaker: Dialogue
+
+For example:
+
+Sarah: This is the first line of dialogue.
 
 Only provide the next line without repeating the previous conversation.
                 `
@@ -60,7 +65,7 @@ Only provide the next line without repeating the previous conversation.
                 model: 'gpt-3.5-turbo',
                 messages: messages,
                 max_tokens: 100,
-                temperature: 0.5, // Adjusted for more deterministic output
+                temperature: 0.3, // Lowered for more deterministic output
                 stop: null
             })
         });
@@ -75,10 +80,17 @@ Only provide the next line without repeating the previous conversation.
         const data = await response.json();
         const nextLineText = data.choices[0].message.content.trim();
 
-        // Parse the next line
-        const [speakerWithColon, ...dialogueParts] = nextLineText.split(':');
-        const speaker = speakerWithColon.trim();
-        const dialogue = dialogueParts.join(':').trim();
+        // Use regex to extract speaker and dialogue
+        const match = nextLineText.match(/^(\w+):\s*(.+)$/);
+
+        if (!match) {
+            console.error(`Failed to parse the line: "${nextLineText}"`);
+            res.status(500).send('Error parsing the generated line.');
+            return;
+        }
+
+        const speaker = match[1].trim();
+        const dialogue = match[2].trim();
 
         const nextLine = { speaker, dialogue };
 
