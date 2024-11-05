@@ -25,7 +25,18 @@ module.exports = async (req, res) => {
             'Mike': 'onyx'      // Male voice
         };
 
-        const voice = speakerVoices[speaker] || 'alloy';
+        // Trim and validate speaker name
+        const trimmedSpeaker = speaker.trim();
+
+        // Check if the speaker is one of the expected names
+        const voice = speakerVoices[trimmedSpeaker];
+
+        if (!voice) {
+            // Handle unknown speaker names
+            console.error(`Unknown speaker: ${trimmedSpeaker}. Skipping this line.`);
+            res.status(400).send(`Unknown speaker: ${trimmedSpeaker}`);
+            return;
+        }
 
         const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
             method: 'POST',
@@ -43,7 +54,9 @@ module.exports = async (req, res) => {
 
         if (!ttsResponse.ok) {
             const error = await ttsResponse.json();
-            throw new Error(`TTS API Error: ${JSON.stringify(error)}`);
+            console.error('TTS API Error:', error);
+            res.status(500).send('Error generating audio.');
+            return;
         }
 
         const arrayBuffer = await ttsResponse.arrayBuffer();
