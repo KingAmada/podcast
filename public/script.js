@@ -30,6 +30,7 @@ async function startPodcastGeneration(text) {
     progressDiv.textContent = 'Starting podcast generation...';
     conversationDiv.innerHTML = '';
     let conversationHistory = [];
+    let audioBuffers = [];
 
     const maxTurns = 10; // Define how many turns you want in the conversation
 
@@ -48,16 +49,25 @@ async function startPodcastGeneration(text) {
         conversationDiv.appendChild(lineDiv);
 
         // Step 2: Generate audio for the line
-        const audioUrl = await generateAudio(nextLine.speaker, nextLine.dialogue);
+        const audioBuffer = await generateAudioBuffer(nextLine.speaker, nextLine.dialogue);
 
-        // Play the audio
-        await playAudio(audioUrl);
+        // Store the audio buffer
+        audioBuffers.push(audioBuffer);
 
         // Update progress
         progressDiv.textContent = `Generated ${i + 1} of ${maxTurns} lines`;
     }
 
-    progressDiv.textContent = 'Podcast generation complete!';
+    progressDiv.textContent = 'All audio generated. Click the play button to listen.';
+
+    // Show play button
+    const playButton = document.createElement('button');
+    playButton.textContent = 'Play Podcast';
+    playButton.onclick = () => {
+        playButton.disabled = true;
+        playConcatenatedAudio(audioBuffers);
+    };
+    conversationDiv.appendChild(playButton);
 }
 
 async function generateNextLine(topicText, conversationHistory) {
@@ -76,7 +86,7 @@ async function generateNextLine(topicText, conversationHistory) {
     return data.nextLine;
 }
 
-async function generateAudio(speaker, dialogue) {
+async function generateAudioBuffer(speaker, dialogue) {
     const response = await fetch('/api/generate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,16 +97,50 @@ async function generateAudio(speaker, dialogue) {
         throw new Error('Error generating audio.');
     }
 
-    const data = await response.json();
-    return data.audioUrl;
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Decode audio data into an AudioBuffer
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await new Promise((resolve, reject) => {
+        audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+    });
+
+    return audioBuffer;
 }
 
-function playAudio(audioUrl) {
-    return new Promise((resolve) => {
-        const audioElement = new Audio(audioUrl);
-        audioElement.play();
-        audioElement.onended = () => {
-            resolve();
-        };
-    });
+function playConcatenatedAudio(audioBuffers) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Calculate the total length in samples
+    const totalLength = audioBuffers.reduce((sum, buffer) => sum + buffer.length, 0);
+
+    // Create an empty buffer to hold the concatenated audio
+    const numberOfChannels = audioBuffers[0].numberOfChannels;
+    const concatenatedBuffer = audioContext.createBuffer(
+        numberOfChannels,
+        totalLength,
+        audioContext.sampleRate
+    );
+
+    // Copy each audio buffer into the concatenated buffer
+    let offset = 0;
+    for (const buffer of audioBuffers) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+            concatenatedBuffer.getChannelData(channel).set(buffer.getChannelData(channel), offset);
+        }
+        offset += buffer.length;
+    }
+
+    // Play the concatenated buffer
+    const source = audioContext.createBufferSource();
+    source.buffer = concatenatedBuffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+
+    progressDiv.textContent = 'Playing podcast...';
+
+    // Update UI when playback finishes
+    source.onended = () => {
+        progressDiv.textContent = 'Podcast playback finished!';
+    };
 }
