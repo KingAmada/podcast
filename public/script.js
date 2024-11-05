@@ -4,6 +4,68 @@ const generateBtn = document.getElementById('generate-btn');
 const textInput = document.getElementById('text-input');
 const progressDiv = document.getElementById('progress');
 const conversationDiv = document.getElementById('conversation');
+const numSpeakersInput = document.getElementById('num-speakers');
+const speakersContainer = document.getElementById('speakers-container');
+
+const maxSpeakers = 6;
+
+// List of available voices
+const availableVoices = [
+    { name: 'Allison', value: 'allison' },
+    { name: 'Benjamin', value: 'benjamin' },
+    { name: 'Clara', value: 'clara' },
+    { name: 'Daniel', value: 'daniel' },
+    { name: 'Emma', value: 'emma' },
+    { name: 'Fiona', value: 'fiona' },
+    // Add more voices as desired
+];
+
+// Initialize speaker configurations
+function initializeSpeakers() {
+    const numSpeakers = parseInt(numSpeakersInput.value);
+    speakersContainer.innerHTML = '';
+
+    for (let i = 0; i < numSpeakers; i++) {
+        const speakerConfig = document.createElement('div');
+        speakerConfig.classList.add('speaker-config');
+
+        const nameLabel = document.createElement('label');
+        nameLabel.textContent = `Speaker ${i + 1} Name:`;
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = `Speaker${i + 1}`;
+
+        const voiceLabel = document.createElement('label');
+        voiceLabel.textContent = 'Voice:';
+        const voiceSelect = document.createElement('select');
+
+        availableVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.value;
+            option.textContent = voice.name;
+            voiceSelect.appendChild(option);
+        });
+
+        speakerConfig.appendChild(nameLabel);
+        speakerConfig.appendChild(nameInput);
+        speakerConfig.appendChild(voiceLabel);
+        speakerConfig.appendChild(voiceSelect);
+
+        speakersContainer.appendChild(speakerConfig);
+    }
+}
+
+// Event listener for changes in the number of speakers
+numSpeakersInput.addEventListener('change', () => {
+    let numSpeakers = parseInt(numSpeakersInput.value);
+    if (numSpeakers < 2) numSpeakers = 2;
+    if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
+    numSpeakersInput.value = numSpeakers;
+    initializeSpeakers();
+});
+
+// Call initializeSpeakers on page load
+initializeSpeakers();
 
 generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
@@ -16,6 +78,9 @@ generateBtn.addEventListener('click', () => {
     generateBtn.textContent = 'Generating...';
     generateBtn.disabled = true;
 
+    // Show loading animation
+    showLoading();
+
     startPodcastGeneration(text)
         .catch(error => {
             console.error(error);
@@ -24,6 +89,8 @@ generateBtn.addEventListener('click', () => {
         .finally(() => {
             generateBtn.textContent = 'Generate Podcast';
             generateBtn.disabled = false;
+            // Hide loading animation
+            hideLoading();
         });
 });
 
@@ -32,8 +99,17 @@ async function startPodcastGeneration(text) {
     conversationDiv.innerHTML = '';
     let audioBuffers = [];
 
+    // Get speaker settings
+    const speakers = [];
+    const speakerConfigs = document.querySelectorAll('.speaker-config');
+    speakerConfigs.forEach(config => {
+        const name = config.querySelector('input').value.trim();
+        const voice = config.querySelector('select').value;
+        speakers.push({ name, voice });
+    });
+
     // Step 1: Generate the full conversation
-    const conversationText = await generateFullConversation(text);
+    const conversationText = await generateFullConversation(text, speakers);
 
     // Step 2: Parse the conversation
     const conversation = parseConversation(conversationText);
@@ -54,7 +130,11 @@ async function startPodcastGeneration(text) {
         const line = conversation[i];
         progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
         try {
-            const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, line.actions);
+            const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
+            if (!speakerVoice) {
+                throw new Error(`Voice not found for speaker ${line.speaker}`);
+            }
+            const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, line.actions, speakerVoice);
             audioBuffers.push(audioBuffer);
         } catch (error) {
             console.error(`Error generating audio for line ${i + 1}:`, error);
@@ -76,11 +156,11 @@ async function startPodcastGeneration(text) {
     conversationDiv.appendChild(playButton);
 }
 
-async function generateFullConversation(topicText) {
+async function generateFullConversation(topicText, speakers) {
     const response = await fetch('/api/generate-conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topicText })
+        body: JSON.stringify({ topicText, speakers })
     });
 
     if (!response.ok) {
@@ -117,7 +197,7 @@ function parseConversation(conversationText) {
     return conversation;
 }
 
-async function generateAudioBuffer(speaker, dialogue, actions) {
+async function generateAudioBuffer(speaker, dialogue, actions, voice) {
     // Combine dialogue and actions
     let fullDialogue = dialogue;
     if (actions && actions.length > 0) {
@@ -127,7 +207,7 @@ async function generateAudioBuffer(speaker, dialogue, actions) {
     const response = await fetch('/api/generate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speaker, dialogue: fullDialogue })
+        body: JSON.stringify({ speaker, dialogue: fullDialogue, voice })
     });
 
     if (!response.ok) {
@@ -181,4 +261,26 @@ function playConcatenatedAudio(audioBuffers) {
     source.onended = () => {
         progressDiv.textContent = 'Podcast playback finished!';
     };
+}
+
+// Loading animations
+function showLoading() {
+    let loadingOverlay = document.createElement('div');
+    loadingOverlay.classList.add('loading-overlay');
+
+    let spinner = document.createElement('div');
+    spinner.classList.add('loading-spinner');
+    spinner.innerHTML = '<div></div>';
+
+    loadingOverlay.appendChild(spinner);
+    document.body.appendChild(loadingOverlay);
+    loadingOverlay.style.display = 'block';
+}
+
+function hideLoading() {
+    let loadingOverlay = document.querySelector('.loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+        loadingOverlay.remove();
+    }
 }
