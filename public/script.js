@@ -150,7 +150,7 @@ async function startPodcastGeneration(text) {
     playButton.classList.add('play-button');
     playButton.onclick = () => {
         playButton.disabled = true;
-        playConcatenatedAudio(audioBuffers);
+        playOverlappingAudio(conversation, audioBuffers);
     };
     conversationDiv.appendChild(playButton);
 }
@@ -175,26 +175,33 @@ function parseConversation(conversationText) {
     const lines = conversationText.split('\n').filter(line => line.trim() !== '');
     const conversation = [];
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
         // Match speaker and dialogue
         const match = line.match(/^(\w+):\s*(.+)$/);
         if (match) {
             let speaker = match[1].trim();
             let dialogue = match[2].trim();
 
-            // Extract actions or expressions in brackets
-            const actionMatches = dialogue.match(/\[(.*?)\]/g);
-            const actions = actionMatches ? actionMatches.map(a => a.replace(/[\[\]]/g, '')) : [];
+            // Check for interruptions (dialogue ending with '--')
+            const isInterruption = dialogue.endsWith('--');
+            const isContinuation = dialogue.startsWith('--');
 
-            // Remove actions from dialogue
-            dialogue = dialogue.replace(/\[(.*?)\]/g, '').trim();
+            // Clean up dialogue
+            dialogue = dialogue.replace(/^--/, '').replace(/--$/, '').trim();
 
-            conversation.push({ speaker, dialogue, actions });
+            conversation.push({
+                speaker,
+                dialogue,
+                isInterruption,
+                isContinuation,
+                index // Keep track of the original index
+            });
         }
     });
 
     return conversation;
 }
+
 
 async function generateAudioBuffer(speaker, dialogue, actions, voice) {
     // Combine dialogue and actions
@@ -225,42 +232,51 @@ async function generateAudioBuffer(speaker, dialogue, actions, voice) {
     return audioBuffer;
 }
 
-function playConcatenatedAudio(audioBuffers) {
+function playOverlappingAudio(conversation, audioBuffers) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    // Calculate the total length in samples
-    const totalLength = audioBuffers.reduce((sum, buffer) => sum + buffer.length, 0);
+    let currentTime = audioContext.currentTime;
+    const overlapDuration = 0.5; // Duration of overlap in seconds
 
-    // Create an empty buffer to hold the concatenated audio
-    const numberOfChannels = audioBuffers[0].numberOfChannels;
-    const concatenatedBuffer = audioContext.createBuffer(
-        numberOfChannels,
-        totalLength,
-        audioContext.sampleRate
-    );
+    for (let i = 0; i < audioBuffers.length; i++) {
+        const buffer = audioBuffers[i];
+        const line = conversation[i];
 
-    // Copy each audio buffer into the concatenated buffer
-    let offset = 0;
-    audioBuffers.forEach(buffer => {
-        for (let channel = 0; channel < numberOfChannels; channel++) {
-            concatenatedBuffer.getChannelData(channel).set(buffer.getChannelData(channel), offset);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+
+        // Determine when to start the audio source
+        let startTime = currentTime;
+
+        // Check if the previous line was an interruption
+        if (i > 0 && conversation[i - 1].isInterruption) {
+            // Overlap with the previous audio by starting earlier
+            startTime -= overlapDuration;
         }
-        offset += buffer.length;
-    });
 
-    // Play the concatenated buffer
-    const source = audioContext.createBufferSource();
-    source.buffer = concatenatedBuffer;
-    source.connect(audioContext.destination);
-    source.start(0);
+        source.start(startTime);
 
+        // Calculate the duration to add to currentTime
+        const bufferDuration = buffer.duration;
+
+        // If current line is an interruption, reduce the time added
+        if (line.isInterruption) {
+            currentTime += bufferDuration - overlapDuration;
+        } else {
+            currentTime += bufferDuration;
+        }
+    }
+
+    // Update progressDiv when playback starts and ends
     progressDiv.textContent = 'Playing podcast...';
 
-    // Update UI when playback finishes
-    source.onended = () => {
+    // Handle end of playback (approximate)
+    setTimeout(() => {
         progressDiv.textContent = 'Podcast playback finished!';
-    };
+    }, (currentTime - audioContext.currentTime) * 1000);
 }
+
 
 // Loading animations
 function showLoading() {
