@@ -3,12 +3,7 @@
 /* Updated body styles with animated gradient background */
 
 /* Adjust the container to have a maximum width and center it */
-.container {
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 20px;
-    text-align: center;
-}
+
 
 /* Adjust the width of input fields and text areas */
 textarea, input[type="text"], input[type="number"], select {
@@ -37,9 +32,12 @@ textarea, input[type="text"], input[type="number"], select {
 
 /* Additional adjustments for responsive design */
 @media (max-width: 600px) {
-    .container {
-        padding: 10px;
-    }
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
 
     textarea, input[type="text"], input[type="number"], select, button {
         max-width: 100%;
