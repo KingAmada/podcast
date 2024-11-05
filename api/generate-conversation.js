@@ -43,7 +43,7 @@ Mike: --thinking about the same thing! [laughs]
 Now, please provide the full conversation.
         `;
 
-        const response = await fetch('https://api.openai.com/v1/completions', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${openai_api_key}`,
