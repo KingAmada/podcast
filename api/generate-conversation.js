@@ -50,7 +50,7 @@ Now, please provide the full conversation.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'text-davinci-003',
+                model: 'text-4o',
                 prompt: prompt,
                 max_tokens: 1500,
                 temperature: 0.8,
