@@ -1,6 +1,15 @@
 {
   "name": "podcast-generator",
   "version": "1.0.0",
+  "description": "A web application to generate natural conversational podcasts using OpenAI APIs.",
+  "main": "index.js",
+  "scripts": {
+    "start": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel deploy"
+  },
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
     "node-fetch": "^2.6.7"
   }
