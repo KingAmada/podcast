@@ -1,76 +1,10 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Text-to-Speech Generator</title>
-    <style>
-        /* Include your CSS styles here */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to right, #8e44ad, #3498db);
-            color: #fff;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            border: none;
-            border-radius: 10px;
-            padding: 15px;
-            font-size: 1.2em;
-            resize: none;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .options {
-            margin-bottom: 20px;
-        }
-
-        select {
-            padding: 10px;
-            font-size: 1em;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        #generate-btn {
-            background-color: #e74c3c;
-            color: #fff;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        #generate-btn:hover {
-            background-color: #c0392b;
-        }
-
-        @media (max-width: 600px) {
-            select {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -78,13 +12,27 @@
         <textarea id="text-input" placeholder="Enter your text here..."></textarea>
         <div class="options">
             <select id="voice-select">
-                <option value="">Loading voices...</option>
+                <option value="alloy">Alloy</option>
+                <option value="echo">Echo</option>
+                <option value="fable">Fable</option>
+                <option value="onyx">Onyx</option>
+                <option value="nova">Nova</option>
+                <option value="shimmer">Shimmer</option>
+            </select>
+            <select id="format-select">
+                <option value="mp3">MP3</option>
+                <option value="aac">AAC</option>
+                <option value="wav">WAV</option>
+                <option value="flac">FLAC</option>
+                <option value="opus">OPUS</option>
+                <option value="pcm">PCM</option>
             </select>
         </div>
         <button id="generate-btn">Generate Speech</button>
+        <div id="audio-container">
+            <!-- Audio output will appear here -->
+        </div>
     </div>
-    <script>
-        // JavaScript code goes here
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
