@@ -1,57 +1,101 @@
 // public/script.js
-document.getElementById('generate-btn').addEventListener('click', () => {
-    const text = document.getElementById('text-input').value.trim();
+const generateBtn = document.getElementById('generate-btn');
+const textInput = document.getElementById('text-input');
+const progressDiv = document.getElementById('progress');
+const conversationDiv = document.getElementById('conversation');
+
+generateBtn.addEventListener('click', () => {
+    const text = textInput.value.trim();
 
     if (text === '') {
         alert('Please enter some text.');
         return;
     }
 
-    const generateBtn = document.getElementById('generate-btn');
     generateBtn.textContent = 'Generating...';
     generateBtn.disabled = true;
 
-    fetch('/api/generate-podcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error generating podcast.');
-        }
-        return response.json();
-    })
-    .then(data => {
-        playAudioSequence(data.audioUrls);
-    })
-    .catch(error => {
-        console.error(error);
-        alert('An error occurred while generating the podcast.');
-    })
-    .finally(() => {
-        generateBtn.textContent = 'Generate Podcast';
-        generateBtn.disabled = false;
-    });
+    startPodcastGeneration(text)
+        .catch(error => {
+            console.error(error);
+            alert('An error occurred while generating the podcast.');
+        })
+        .finally(() => {
+            generateBtn.textContent = 'Generate Podcast';
+            generateBtn.disabled = false;
+        });
 });
 
-function playAudioSequence(audioUrls) {
-    const audioContainer = document.getElementById('audio-container');
-    audioContainer.innerHTML = '';
+async function startPodcastGeneration(text) {
+    progressDiv.textContent = 'Starting podcast generation...';
+    conversationDiv.innerHTML = '';
+    let conversationHistory = [];
 
-    let currentIndex = 0;
-    const audioElement = document.createElement('audio');
-    audioElement.controls = true;
+    const maxTurns = 10; // Define how many turns you want in the conversation
 
-    audioElement.src = audioUrls[currentIndex];
-    audioElement.addEventListener('ended', () => {
-        currentIndex++;
-        if (currentIndex < audioUrls.length) {
-            audioElement.src = audioUrls[currentIndex];
-            audioElement.play();
+    for (let i = 0; i < maxTurns; i++) {
+        // Step 1: Generate the next line
+        const nextLine = await generateNextLine(text, conversationHistory);
+        if (!nextLine) {
+            break;
         }
+
+        conversationHistory.push(nextLine);
+
+        // Update the UI with the new line
+        const lineDiv = document.createElement('div');
+        lineDiv.textContent = `${nextLine.speaker}: ${nextLine.dialogue}`;
+        conversationDiv.appendChild(lineDiv);
+
+        // Step 2: Generate audio for the line
+        const audioUrl = await generateAudio(nextLine.speaker, nextLine.dialogue);
+
+        // Play the audio
+        await playAudio(audioUrl);
+
+        // Update progress
+        progressDiv.textContent = `Generated ${i + 1} of ${maxTurns} lines`;
+    }
+
+    progressDiv.textContent = 'Podcast generation complete!';
+}
+
+async function generateNextLine(topicText, conversationHistory) {
+    const response = await fetch('/api/generate-line', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topicText, conversationHistory })
     });
 
-    audioContainer.appendChild(audioElement);
-    audioElement.play();
+    if (!response.ok) {
+        throw new Error('Error generating next line.');
+    }
+
+    const data = await response.json();
+    return data.nextLine;
+}
+
+async function generateAudio(speaker, dialogue) {
+    const response = await fetch('/api/generate-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ speaker, dialogue })
+    });
+
+    if (!response.ok) {
+        throw new Error('Error generating audio.');
+    }
+
+    const data = await response.json();
+    return data.audioUrl;
+}
+
+function playAudio(audioUrl) {
+    return new Promise((resolve) => {
+        const audioElement = new Audio(audioUrl);
+        audioElement.play();
+        audioElement.onended = () => {
+            resolve();
+        };
+    });
 }
