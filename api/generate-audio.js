@@ -13,6 +13,21 @@ module.exports = async (req, res) => {
         res.status(400).send('Missing parameters.');
         return;
     }
+// api/generate-audio.js
+
+// ...
+
+const supportedVoices = ['nova', 'shimmer', 'echo', 'onyx', 'fable', 'alloy'];
+
+// ...
+
+if (!supportedVoices.includes(voice)) {
+    console.error(`Unsupported voice: ${voice}.`);
+    res.status(400).send(`Unsupported voice: ${voice}`);
+    return;
+}
+
+// Proceed with the TTS request
 
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
