@@ -72,6 +72,7 @@ async function generateNextLine(topicText, conversationHistory) {
     }
 
     const data = await response.json();
+    console.log(`Received line: ${data.nextLine.speaker}: ${data.nextLine.dialogue}`);
     return data.nextLine;
 }
 
