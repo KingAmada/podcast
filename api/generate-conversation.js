@@ -57,7 +57,7 @@ Now, please provide the full conversation.
             body: JSON.stringify({
                 model: 'gpt-4o',
                 messages: messages,
-                max_tokens: 1500,
+                max_tokens: 500,
                 temperature: 0.8
             })
         });
