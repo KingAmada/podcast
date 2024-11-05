@@ -62,14 +62,11 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const arrayBuffer = await ttsResponse.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const audioBuffer = await ttsResponse.arrayBuffer();
 
-        // Encode the audio as a base64 data URL
-        const base64Audio = buffer.toString('base64');
-        const audioUrl = `data:audio/mp3;base64,${base64Audio}`;
-
-        res.status(200).json({ audioUrl });
+        // Send the raw audio data back to the client
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.send(Buffer.from(audioBuffer));
     } catch (error) {
         console.error('Server Error:', error);
         res.status(500).send('Server error.');
