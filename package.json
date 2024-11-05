@@ -2,6 +2,8 @@
   "name": "text-to-speech-app",
   "version": "1.0.0",
   "dependencies": {
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "uuid": "^8.3.2",
+    "form-data": "^4.0.0"
   }
 }
