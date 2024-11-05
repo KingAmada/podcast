@@ -1,6 +1,52 @@
 /* public/styles.css */
 
 /* Updated body styles with animated gradient background */
+
+/* Adjust the container to have a maximum width and center it */
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Adjust the width of input fields and text areas */
+textarea, input[type="text"], input[type="number"], select {
+    width: 100%;
+    max-width: 600px; /* Set a maximum width */
+    margin: 0 auto 15px auto; /* Center the elements */
+}
+
+/* Adjust the conversation display area */
+#conversation {
+    margin-top: 30px;
+    text-align: left;
+    max-height: 300px; /* Set a maximum height */
+    overflow-y: auto; /* Make it scrollable if content exceeds max-height */
+    margin: 0 auto; /* Center the conversation area */
+    max-width: 800px; /* Match the container width */
+}
+
+/* Adjust other elements to fit within the container */
+#progress {
+    margin-top: 20px;
+    font-size: 1.2em;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Additional adjustments for responsive design */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    textarea, input[type="text"], input[type="number"], select, button {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -51,6 +97,9 @@ button {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    max-width: 300px;
+    width: 100%;
+    margin: 10px auto;
 }
 
 button:hover {
