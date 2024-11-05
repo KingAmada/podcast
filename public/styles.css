@@ -62,6 +62,15 @@ button:hover {
     border-radius: 5px;
 }
 
+.play-button {
+    margin-top: 20px;
+    background-color: #2ecc71;
+}
+
+.play-button:hover {
+    background-color: #27ae60;
+}
+
 @media (max-width: 600px) {
     textarea {
         height: 100px;
