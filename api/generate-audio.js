@@ -19,9 +19,9 @@ module.exports = async (req, res) => {
 
         // Assign voices to speakers
         const speakerVoices = {
-            'Sarah': 'shimmer', // Female voice
+            'Sarah': 'nova', // Female voice
             'Rachel': 'fable',  // Female voice
-            'Tom': 'alloy',     // Male voice
+            'Tom': 'echo',     // Male voice
             'Mike': 'onyx'      // Male voice
         };
 
