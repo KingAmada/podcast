@@ -7,39 +7,15 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const { speaker, dialogue } = req.body;
+    const { speaker, dialogue, voice } = req.body;
 
-    if (!speaker || !dialogue) {
+    if (!speaker || !dialogue || !voice) {
         res.status(400).send('Missing parameters.');
         return;
     }
 
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
-
-        // Assign voices to speakers
-        const speakerVoices = {
-            'Sarah': 'nova', // Female voice
-            'Rachel': 'fable',  // Female voice
-            'Tom': 'echo',     // Male voice
-            'Mike': 'onyx'      // Male voice
-        };
-
-        // Trim and validate speaker name
-        const trimmedSpeaker = speaker.trim();
-
-        // Convert speaker name to proper case
-        const formattedSpeaker = trimmedSpeaker.charAt(0).toUpperCase() + trimmedSpeaker.slice(1).toLowerCase();
-
-        // Check if the speaker is one of the expected names
-        const voice = speakerVoices[formattedSpeaker];
-
-        if (!voice) {
-            // Handle unknown speaker names
-            console.error(`Unknown speaker: ${formattedSpeaker}. Skipping this line.`);
-            res.status(400).send(`Unknown speaker: ${formattedSpeaker}`);
-            return;
-        }
 
         // Clean dialogue by removing actions for TTS
         const cleanedDialogue = dialogue.replace(/\[(.*?)\]/g, '');
