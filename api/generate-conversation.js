@@ -7,21 +7,27 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const { topicText } = req.body;
+    const { topicText, speakers } = req.body;
 
-    if (!topicText) {
-        res.status(400).send('Missing topicText parameter.');
+    if (!topicText || !speakers || speakers.length < 2) {
+        res.status(400).send('Missing or invalid parameters.');
         return;
     }
 
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
 
+        // Generate speaker names list
+        const speakerNames = speakers.map(s => s.name);
+
         const messages = [
             {
                 role: 'system',
                 content: `
-You are to create a podcast conversation between four people: two females (Sarah and Rachel) and two males (Tom and Mike). They are discussing the following topic:
+You are to create a podcast conversation between the following people:
+${speakerNames.join(', ')}.
+
+They are discussing the following topic:
 
 "${topicText}"
 
@@ -31,6 +37,7 @@ The conversation should be:
 - Include fillers like "um", "ah", "you know", laughs, and expressions of emotion.
 - Each person's speech should reflect their personality and perspective.
 - The conversation should feel authentic, as if it's happening in real-time on a podcast.
+- Keep the conversation concise to fit within the response limit.
 
 Format the conversation as follows:
 
@@ -55,9 +62,9 @@ Now, please provide the full conversation.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
+                model: 'gpt-3.5-turbo',
                 messages: messages,
-                max_tokens: 500,
+                max_tokens: 750,
                 temperature: 0.8
             })
         });
