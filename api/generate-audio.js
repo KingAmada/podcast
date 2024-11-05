@@ -41,6 +41,9 @@ module.exports = async (req, res) => {
             return;
         }
 
+        // Clean dialogue by removing actions for TTS
+        const cleanedDialogue = dialogue.replace(/\[(.*?)\]/g, '');
+
         const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
             method: 'POST',
             headers: {
@@ -49,7 +52,7 @@ module.exports = async (req, res) => {
             },
             body: JSON.stringify({
                 model: 'tts-1',
-                input: dialogue,
+                input: cleanedDialogue,
                 voice: voice,
                 response_format: 'mp3'
             })
