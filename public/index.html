@@ -10,6 +10,15 @@
     <div class="container">
         <h1>🎙️ Podcast Generator</h1>
         <textarea id="text-input" placeholder="Enter your topic here..."></textarea>
+        
+        <div id="speaker-settings">
+            <label for="num-speakers">Number of Speakers (2-6):</label>
+            <input type="number" id="num-speakers" name="num-speakers" min="2" max="6" value="4">
+            <div id="speakers-container">
+                <!-- Speaker configurations will be dynamically added here -->
+            </div>
+        </div>
+        
         <button id="generate-btn">Generate Podcast</button>
         <div id="progress">
             <!-- Progress messages will appear here -->
