@@ -11,13 +11,12 @@ const maxSpeakers = 6;
 
 // List of available voices
 const availableVoices = [
-    { name: 'Allison', value: 'allison' },
-    { name: 'Benjamin', value: 'benjamin' },
-    { name: 'Clara', value: 'clara' },
-    { name: 'Daniel', value: 'daniel' },
-    { name: 'Emma', value: 'emma' },
-    { name: 'Fiona', value: 'fiona' },
-    // Add more voices as desired
+    { name: 'Nova (Female)', value: 'nova' },
+    { name: 'Shimmer (Female)', value: 'shimmer' },
+    { name: 'Echo (Female)', value: 'echo' },
+    { name: 'Onyx (Male)', value: 'onyx' },
+    { name: 'Fable (Female)', value: 'fable' },
+    { name: 'Alloy (Male)', value: 'alloy' }
 ];
 
 // Initialize speaker configurations
