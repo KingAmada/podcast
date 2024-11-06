@@ -1,4 +1,5 @@
 // api/generate-conversation.js
+
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
@@ -33,12 +34,14 @@ They are discussing the following topic:
 
 The conversation should be:
 
-- Natural and dynamic, with interruptions, overlaps, and varied speaker order.
-- Include natural speech fillers like "um", "ah", "you know", "haha", "heh", "hmm", and expressions of emotion spelled out in the dialogue.
+- Highly interactive and dynamic, with frequent interruptions, overlaps, and varied speaker order.
+- Speakers should chime in randomly, not following any fixed sequence; anyone can jump in at any time.
+- Include natural speech fillers like "um", "ah", "you know", "uh-huh", "yeah", "oh", "hmm", and expressions of emotion spelled out in the dialogue.
+- Incorporate little human noises like laughs ("haha", "heh"), sighs ("sigh"), gasps ("gasp"), and other non-verbal expressions spelled out in the dialogue.
 - Each person's speech should reflect their personality and perspective.
-- The conversation should feel authentic, as if it's happening in real-time on a podcast.
-- Instead of using brackets for actions (e.g., [laughs]), spell out laughs and sounds directly in the dialogue.
-- Avoid using any bracketed annotations like [laughs], [sighs], [interrupting].
+- The conversation should feel authentic and spontaneous, as if it's happening in real-time on a podcast.
+- Avoid using any bracketed annotations like [laughs], [sighs], [interrupting], etc.
+- Instead of brackets, spell out the sounds directly in the dialogue (e.g., "Haha, that's funny!" or "Oh, um, I didn't know that.").
 
 Format the conversation as follows:
 
@@ -49,6 +52,7 @@ Example:
 
 Sarah: You know, I was thinking--
 Mike: --thinking about the same thing! Haha!
+Alex: Oh, really? That's funny.
 
 Now, please provide the full conversation.
                 `
@@ -64,8 +68,8 @@ Now, please provide the full conversation.
             body: JSON.stringify({
                 model: 'gpt-3.5-turbo',
                 messages: messages,
-                max_tokens: 750,
-                temperature: 0.8
+                max_tokens: 1000, // Adjust if needed
+                temperature: 0.9   // Increase for more creativity
             })
         });
 
