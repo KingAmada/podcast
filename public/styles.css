@@ -1,52 +1,6 @@
 /* public/styles.css */
 
-/* Updated body styles with animated gradient background */
-
-/* Adjust the container to have a maximum width and center it */
-.container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
-    text-align: center;
-}
-
-/* Adjust the width of input fields and text areas */
-textarea, input[type="text"], input[type="number"], select {
-    width: 100%;
-    max-width: 600px; /* Set a maximum width */
-    margin: 0 auto 15px auto; /* Center the elements */
-}
-
-/* Adjust the conversation display area */
-#conversation {
-    margin-top: 30px;
-    text-align: left;
-    max-height: 300px; /* Set a maximum height */
-    overflow-y: auto; /* Make it scrollable if content exceeds max-height */
-    margin: 0 auto; /* Center the conversation area */
-    max-width: 800px; /* Match the container width */
-}
-
-/* Adjust other elements to fit within the container */
-#progress {
-    margin-top: 20px;
-    font-size: 1.2em;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* Additional adjustments for responsive design */
-@media (max-width: 600px) {
-.container {
-    max-width: 600px;
-}
-
-    textarea, input[type="text"], input[type="number"], select, button {
-        max-width: 100%;
-        width: 100%;
-    }
-}
-
+/* Maintain the beautiful animated gradient background */
 body {
     margin: 0;
     padding: 0;
@@ -63,104 +17,119 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* Rest of your existing styles */
+/* Container styling */
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
 
-/* Modern input boxes */
+/* Input fields and text areas */
 textarea, input[type="text"], input[type="number"], select {
     width: 100%;
+    max-width: 600px;
     border: none;
     border-radius: 10px;
     padding: 15px;
     font-size: 1em;
-    margin-bottom: 15px;
+    margin: 15px auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
 }
 
-textarea::placeholder, input::placeholder {
-    color: #eee;
-}
-
-textarea:focus, input[type="text"]:focus, input[type="number"]:focus, select:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* Modern buttons */
+/* Buttons */
 button {
+    max-width: 300px;
+    width: 100%;
     background-color: rgba(255, 255, 255, 0.3);
     color: #fff;
-    padding: 15px 30px;
+    padding: 15px;
     font-size: 1em;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    max-width: 300px;
-    width: 100%;
     margin: 10px auto;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Speaker settings */
-#speaker-settings {
-    margin: 20px 0;
-    text-align: left;
+/* Multiselect dropdown styles */
+.multiselect {
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    display: inline-block;
+    margin: 0 auto;
+}
+
+.selectBox {
+    position: relative;
+}
+
+.selectBox select {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    appearance: none;
+}
+
+.overSelect {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+}
+
+#checkboxes {
+    display: none;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.2);
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+}
+
+#checkboxes label {
+    display: block;
+    padding: 10px;
     color: #fff;
 }
 
-.speaker-config {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 10px;
+#checkboxes label:hover {
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
-.speaker-config label {
-    flex: 1 1 100%;
-    margin-bottom: 5px;
+/* Conversation display area */
+#conversation {
+    margin-top: 30px;
+    text-align: left;
+    max-height: 250px;
+    overflow-y: auto;
+    margin: 0 auto;
+    max-width: 800px;
 }
 
-.speaker-config input, .speaker-config select {
-    flex: 1 1 100%;
-}
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
 
-/* Loading overlay */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 999;
-    display: none;
-}
+    textarea, input[type="text"], input[type="number"], select, button {
+        max-width: 100%;
+        width: 100%;
+    }
 
-.loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.loading-spinner div {
-    width: 40px;
-    height: 40px;
-    background-color: #fff;
-    border-radius: 100%;
-    animation: bounce 2s infinite ease-in-out;
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: scale(0);
-    } 
-    50% {
-        transform: scale(1);
+    #conversation {
+        max-height: 200px;
     }
 }
