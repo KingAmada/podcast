@@ -1,4 +1,5 @@
 // api/generate-audio.js
+
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
@@ -13,26 +14,20 @@ module.exports = async (req, res) => {
         res.status(400).send('Missing parameters.');
         return;
     }
-// api/generate-audio.js
-
-// ...
-
-const supportedVoices = ['nova', 'shimmer', 'echo', 'onyx', 'fable', 'alloy'];
-
-// ...
-
-if (!supportedVoices.includes(voice)) {
-    console.error(`Unsupported voice: ${voice}.`);
-    res.status(400).send(`Unsupported voice: ${voice}`);
-    return;
-}
-
-// Proceed with the TTS request
 
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
 
-        // Clean dialogue by removing actions for TTS
+        // Supported voices
+        const supportedVoices = ['nova', 'shimmer', 'echo', 'onyx', 'fable', 'alloy'];
+
+        if (!supportedVoices.includes(voice)) {
+            console.error(`Unsupported voice: ${voice}.`);
+            res.status(400).send(`Unsupported voice: ${voice}`);
+            return;
+        }
+
+        // Clean dialogue by removing any unintended characters
         const cleanedDialogue = dialogue.replace(/\[(.*?)\]/g, '');
 
         const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -52,7 +47,7 @@ if (!supportedVoices.includes(voice)) {
         if (!ttsResponse.ok) {
             const error = await ttsResponse.json();
             console.error('TTS API Error:', error);
-            res.status(500).send('Error generating audio.');
+            res.status(500).send(`Error generating audio: ${error.error.message}`);
             return;
         }
 
