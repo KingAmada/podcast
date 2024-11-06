@@ -35,6 +35,7 @@ They are discussing the following topic:
 The conversation should be:
 
 - Highly interactive and dynamic, with frequent interruptions, overlaps, and varied speaker order.
+- Responses should vary in length, including very short replies like "uh-huh", "yeah", "okay", as well as longer responses of 2-3 sentences.
 - Speakers should chime in randomly, not following any fixed sequence; anyone can jump in at any time.
 - Include natural speech fillers like "um", "ah", "you know", "uh-huh", "yeah", "oh", "hmm", and expressions of emotion spelled out in the dialogue.
 - Incorporate little human noises like laughs ("haha", "heh"), sighs ("sigh"), gasps ("gasp"), and other non-verbal expressions spelled out in the dialogue.
@@ -53,6 +54,8 @@ Example:
 Sarah: You know, I was thinking--
 Mike: --thinking about the same thing! Haha!
 Alex: Oh, really? That's funny.
+Sarah: Yeah.
+Mike: Exactly!
 
 Now, please provide the full conversation.
                 `
@@ -68,7 +71,7 @@ Now, please provide the full conversation.
             body: JSON.stringify({
                 model: 'gpt-4o',
                 messages: messages,
-                max_tokens: 1500, // Adjust if needed
+                max_tokens: 1000, // Adjust if needed
                 temperature: 0.9   // Increase for more creativity
             })
         });
