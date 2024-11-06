@@ -1,52 +1,6 @@
 /* public/styles.css */
 
-/* Updated body styles with animated gradient background */
-
-/* Adjust the container to have a maximum width and center it */
-.container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
-    text-align: center;
-}
-
-/* Adjust the width of input fields and text areas */
-textarea, input[type="text"], input[type="number"], select {
-    width: 100%;
-    max-width: 600px; /* Set a maximum width */
-    margin: 0 auto 15px auto; /* Center the elements */
-}
-
-/* Adjust the conversation display area */
-#conversation {
-    margin-top: 30px;
-    text-align: left;
-    max-height: 300px; /* Set a maximum height */
-    overflow-y: auto; /* Make it scrollable if content exceeds max-height */
-    margin: 0 auto; /* Center the conversation area */
-    max-width: 800px; /* Match the container width */
-}
-
-/* Adjust other elements to fit within the container */
-#progress {
-    margin-top: 20px;
-    font-size: 1.2em;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* Additional adjustments for responsive design */
-@media (max-width: 600px) {
-.container {
-    max-width: 600px;
-}
-
-    textarea, input[type="text"], input[type="number"], select, button {
-        max-width: 100%;
-        width: 100%;
-    }
-}
-
+/* Animated gradient background */
 body {
     margin: 0;
     padding: 0;
@@ -63,16 +17,24 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* Rest of your existing styles */
+/* Container styling */
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
 
-/* Modern input boxes */
+/* Input fields and text areas */
 textarea, input[type="text"], input[type="number"], select {
     width: 100%;
+    max-width: 600px;
     border: none;
     border-radius: 10px;
     padding: 15px;
     font-size: 1em;
-    margin-bottom: 15px;
+    margin: 15px auto;
+    box-sizing: border-box;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
@@ -87,19 +49,19 @@ textarea:focus, input[type="text"]:focus, input[type="number"]:focus, select:foc
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Modern buttons */
+/* Buttons */
 button {
+    max-width: 300px;
+    width: 100%;
     background-color: rgba(255, 255, 255, 0.3);
     color: #fff;
-    padding: 15px 30px;
+    padding: 15px;
     font-size: 1em;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    max-width: 300px;
-    width: 100%;
     margin: 10px auto;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -115,18 +77,45 @@ button:hover {
 
 .speaker-config {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
-.speaker-config label {
-    flex: 1 1 100%;
+.speaker-config input[type="text"],
+.speaker-config select {
+    width: 48%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1em;
     margin-bottom: 5px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
 }
 
-.speaker-config input, .speaker-config select {
-    flex: 1 1 100%;
+@media (max-width: 600px) {
+    .speaker-config {
+        flex-direction: column;
+    }
+
+    .speaker-config input[type="text"],
+    .speaker-config select {
+        width: 100%;
+    }
+}
+
+/* Conversation display area */
+#conversation {
+    margin-top: 30px;
+    text-align: left;
+    max-height: 250px;
+    overflow-y: auto;
+    margin: 0 auto;
+    max-width: 800px;
 }
 
 /* Loading overlay */
@@ -159,7 +148,7 @@ button:hover {
 @keyframes bounce {
     0%, 100% {
         transform: scale(0);
-    } 
+    }
     50% {
         transform: scale(1);
     }
