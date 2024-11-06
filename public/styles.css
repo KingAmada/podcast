@@ -25,7 +25,7 @@ body {
     text-align: center;
 }
 
-/* Input fields and text areas */
+/* Adjust the width of input fields and text areas */
 textarea, input[type="text"], input[type="number"], select {
     width: 100%;
     max-width: 600px;
@@ -90,6 +90,7 @@ button:hover {
     padding: 10px;
     font-size: 1em;
     margin-bottom: 5px;
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
@@ -104,6 +105,7 @@ button:hover {
     .speaker-config select {
         width: 100%;
     }
+
 }
 
 /* Conversation display area */
