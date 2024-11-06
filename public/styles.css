@@ -117,6 +117,48 @@ button:hover {
     margin: 0 auto;
     max-width: 800px;
 }
+/* public/styles.css */
+
+/* Existing styles remain unchanged */
+
+/* Speaker settings */
+#speaker-settings {
+    margin: 20px 0;
+    text-align: left;
+    color: #fff;
+}
+
+.speaker-config {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.speaker-config input[type="text"],
+.speaker-config select {
+    width: 48%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1em;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .speaker-config {
+        flex-direction: column;
+    }
+
+    .speaker-config input[type="text"],
+    .speaker-config select {
+        width: 100%;
+    }
+}
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
