@@ -10,6 +10,13 @@ const speakersContainer = document.getElementById('speakers-container');
 const maxSpeakers = 6;
 
 // List of available voices
+// public/script.js
+
+// ... existing code ...
+
+let expanded = false;
+
+// List of available voices
 const availableVoices = [
     { name: 'Nova (Female)', value: 'nova' },
     { name: 'Shimmer (Female)', value: 'shimmer' },
@@ -19,9 +26,42 @@ const availableVoices = [
     { name: 'Alloy (Male)', value: 'alloy' }
 ];
 
-// Initialize speaker configurations
+// Create checkboxes for the voices
+function createVoiceCheckboxes() {
+    const checkboxes = document.getElementById('checkboxes');
+    checkboxes.innerHTML = '';
+
+    availableVoices.forEach(voice => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = voice.value;
+        input.checked = true; // Select all voices by default
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(' ' + voice.name));
+        checkboxes.appendChild(label);
+    });
+}
+
+// Show or hide the checkboxes
+function showCheckboxes() {
+    const checkboxes = document.getElementById('checkboxes');
+    if (!expanded) {
+        checkboxes.style.display = 'block';
+        expanded = true;
+    } else {
+        checkboxes.style.display = 'none';
+        expanded = false;
+    }
+}
+
+// Initialize voice checkboxes
+createVoiceCheckboxes();
+
+// Update speaker configurations based on number of speakers and selected voices
 function initializeSpeakers() {
     const numSpeakers = parseInt(numSpeakersInput.value);
+    const selectedVoices = getSelectedVoices();
     speakersContainer.innerHTML = '';
 
     for (let i = 0; i < numSpeakers; i++) {
@@ -34,24 +74,36 @@ function initializeSpeakers() {
         nameInput.type = 'text';
         nameInput.value = `Speaker${i + 1}`;
 
-        const voiceLabel = document.createElement('label');
-        voiceLabel.textContent = 'Voice:';
-        const voiceSelect = document.createElement('select');
+        // Assign voices to speakers
+        const voiceIndex = i % selectedVoices.length;
+        const voiceValue = selectedVoices[voiceIndex];
+        const voiceName = availableVoices.find(v => v.value === voiceValue)?.name || 'Unknown Voice';
 
-        availableVoices.forEach(voice => {
-            const option = document.createElement('option');
-            option.value = voice.value;
-            option.textContent = voice.name;
-            voiceSelect.appendChild(option);
-        });
+        const voiceLabel = document.createElement('label');
+        voiceLabel.textContent = `Voice: ${voiceName}`;
+        voiceLabel.classList.add('voice-label');
+
+        // Store voice value in a data attribute
+        nameInput.dataset.voice = voiceValue;
 
         speakerConfig.appendChild(nameLabel);
         speakerConfig.appendChild(nameInput);
         speakerConfig.appendChild(voiceLabel);
-        speakerConfig.appendChild(voiceSelect);
 
         speakersContainer.appendChild(speakerConfig);
     }
+}
+
+// Get selected voices from checkboxes
+function getSelectedVoices() {
+    const checkboxes = document.querySelectorAll('#checkboxes input[type="checkbox"]');
+    const selectedVoices = [];
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedVoices.push(checkbox.value);
+        }
+    });
+    return selectedVoices;
 }
 
 // Event listener for changes in the number of speakers
@@ -60,6 +112,11 @@ numSpeakersInput.addEventListener('change', () => {
     if (numSpeakers < 2) numSpeakers = 2;
     if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
     numSpeakersInput.value = numSpeakers;
+    initializeSpeakers();
+});
+
+// Event listener for changes in voice selection
+document.getElementById('checkboxes').addEventListener('change', () => {
     initializeSpeakers();
 });
 
