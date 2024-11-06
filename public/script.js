@@ -7,65 +7,77 @@ const conversationDiv = document.getElementById('conversation');
 const numSpeakersInput = document.getElementById('num-speakers');
 const speakersContainer = document.getElementById('speakers-container');
 
-const maxSpeakers = 6;
+// public/script.js
 
-// List of available voices
-const availableVoices = [
-    { name: 'Nova (Female)', value: 'nova' },
-    { name: 'Shimmer (Female)', value: 'shimmer' },
-    { name: 'Echo (Female)', value: 'echo' },
-    { name: 'Onyx (Male)', value: 'onyx' },
-    { name: 'Fable (Female)', value: 'fable' },
-    { name: 'Alloy (Male)', value: 'alloy' }
-];
+document.addEventListener('DOMContentLoaded', () => {
+    const generateBtn = document.getElementById('generate-btn');
+    const textInput = document.getElementById('text-input');
+    const progressDiv = document.getElementById('progress');
+    const conversationDiv = document.getElementById('conversation');
+    const numSpeakersInput = document.getElementById('num-speakers');
+    const speakersContainer = document.getElementById('speakers-container');
 
-// Initialize speaker configurations
-function initializeSpeakers() {
-    const numSpeakers = parseInt(numSpeakersInput.value);
-    speakersContainer.innerHTML = '';
+    const maxSpeakers = 6;
 
-    for (let i = 0; i < numSpeakers; i++) {
-        const speakerConfig = document.createElement('div');
-        speakerConfig.classList.add('speaker-config');
+    // List of available voices
+    const availableVoices = [
+        { name: 'Nova (Female)', value: 'nova' },
+        { name: 'Shimmer (Female)', value: 'shimmer' },
+        { name: 'Echo (Female)', value: 'echo' },
+        { name: 'Onyx (Male)', value: 'onyx' },
+        { name: 'Fable (Female)', value: 'fable' },
+        { name: 'Alloy (Male)', value: 'alloy' }
+    ];
 
-        // Speaker Name Input
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = `Speaker${i + 1}`;
-        nameInput.placeholder = `Speaker ${i + 1} Name`;
+    // Initialize speaker configurations
+    function initializeSpeakers() {
+        const numSpeakers = parseInt(numSpeakersInput.value);
+        speakersContainer.innerHTML = '';
 
-        // Voice Selection Dropdown
-        const voiceSelect = document.createElement('select');
+        for (let i = 0; i < numSpeakers; i++) {
+            const speakerConfig = document.createElement('div');
+            speakerConfig.classList.add('speaker-config');
 
-        availableVoices.forEach(voice => {
-            const option = document.createElement('option');
-            option.value = voice.value;
-            option.textContent = voice.name;
-            voiceSelect.appendChild(option);
-        });
+            // Speaker Name Input
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = `Speaker${i + 1}`;
+            nameInput.placeholder = `Speaker ${i + 1} Name`;
 
-        // Assign voices in order
-        const voiceIndex = i % availableVoices.length;
-        voiceSelect.selectedIndex = voiceIndex;
+            // Voice Selection Dropdown
+            const voiceSelect = document.createElement('select');
 
-        speakerConfig.appendChild(nameInput);
-        speakerConfig.appendChild(voiceSelect);
+            availableVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.value;
+                option.textContent = voice.name;
+                voiceSelect.appendChild(option);
+            });
 
-        speakersContainer.appendChild(speakerConfig);
+            // Assign voices in order
+            const voiceIndex = i % availableVoices.length;
+            voiceSelect.selectedIndex = voiceIndex;
+
+            speakerConfig.appendChild(nameInput);
+            speakerConfig.appendChild(voiceSelect);
+
+            speakersContainer.appendChild(speakerConfig);
+        }
     }
-}
 
-// Event listener for changes in the number of speakers
-numSpeakersInput.addEventListener('change', () => {
-    let numSpeakers = parseInt(numSpeakersInput.value);
-    if (numSpeakers < 2) numSpeakers = 2;
-    if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
-    numSpeakersInput.value = numSpeakers;
+    // Event listener for changes in the number of speakers
+    numSpeakersInput.addEventListener('change', () => {
+        let numSpeakers = parseInt(numSpeakersInput.value);
+        if (numSpeakers < 2) numSpeakers = 2;
+        if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
+        numSpeakersInput.value = numSpeakers;
+        initializeSpeakers();
+    });
+
+    // Call initializeSpeakers on page load
     initializeSpeakers();
-});
 
-// Call initializeSpeakers on page load
-initializeSpeakers();
+ 
 
 generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
