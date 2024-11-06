@@ -7,77 +7,64 @@ const conversationDiv = document.getElementById('conversation');
 const numSpeakersInput = document.getElementById('num-speakers');
 const speakersContainer = document.getElementById('speakers-container');
 
-// public/script.js
+const maxSpeakers = 6;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const generateBtn = document.getElementById('generate-btn');
-    const textInput = document.getElementById('text-input');
-    const progressDiv = document.getElementById('progress');
-    const conversationDiv = document.getElementById('conversation');
-    const numSpeakersInput = document.getElementById('num-speakers');
-    const speakersContainer = document.getElementById('speakers-container');
+// List of available voices
+const availableVoices = [
+    { name: 'Nova (Female)', value: 'nova' },
+    { name: 'Shimmer (Female)', value: 'shimmer' },
+    { name: 'Echo (Female)', value: 'echo' },
+    { name: 'Onyx (Male)', value: 'onyx' },
+    { name: 'Fable (Female)', value: 'fable' },
+    { name: 'Alloy (Male)', value: 'alloy' }
+];
 
-    const maxSpeakers = 6;
+// Initialize speaker configurations
+function initializeSpeakers() {
+    const numSpeakers = parseInt(numSpeakersInput.value);
+    speakersContainer.innerHTML = '';
 
-    // List of available voices
-    const availableVoices = [
-        { name: 'Nova (Female)', value: 'nova' },
-        { name: 'Shimmer (Female)', value: 'shimmer' },
-        { name: 'Echo (Female)', value: 'echo' },
-        { name: 'Onyx (Male)', value: 'onyx' },
-        { name: 'Fable (Female)', value: 'fable' },
-        { name: 'Alloy (Male)', value: 'alloy' }
-    ];
+    for (let i = 0; i < numSpeakers; i++) {
+        const speakerConfig = document.createElement('div');
+        speakerConfig.classList.add('speaker-config');
 
-    // Initialize speaker configurations
-    function initializeSpeakers() {
-        const numSpeakers = parseInt(numSpeakersInput.value);
-        speakersContainer.innerHTML = '';
+        const nameLabel = document.createElement('label');
+        nameLabel.textContent = `Speaker ${i + 1} Name:`;
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = `Speaker${i + 1}`;
 
-        for (let i = 0; i < numSpeakers; i++) {
-            const speakerConfig = document.createElement('div');
-            speakerConfig.classList.add('speaker-config');
+        const voiceLabel = document.createElement('label');
+        voiceLabel.textContent = 'Voice:';
+        const voiceSelect = document.createElement('select');
 
-            // Speaker Name Input
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.value = `Speaker${i + 1}`;
-            nameInput.placeholder = `Speaker ${i + 1} Name`;
+        availableVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.value;
+            option.textContent = voice.name;
+            voiceSelect.appendChild(option);
+        });
 
-            // Voice Selection Dropdown
-            const voiceSelect = document.createElement('select');
+        speakerConfig.appendChild(nameLabel);
+        speakerConfig.appendChild(nameInput);
+        speakerConfig.appendChild(voiceLabel);
+        speakerConfig.appendChild(voiceSelect);
 
-            availableVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.value = voice.value;
-                option.textContent = voice.name;
-                voiceSelect.appendChild(option);
-            });
-
-            // Assign voices in order
-            const voiceIndex = i % availableVoices.length;
-            voiceSelect.selectedIndex = voiceIndex;
-
-            speakerConfig.appendChild(nameInput);
-            speakerConfig.appendChild(voiceSelect);
-
-            speakersContainer.appendChild(speakerConfig);
-        }
+        speakersContainer.appendChild(speakerConfig);
     }
+}
 
-    // Event listener for changes in the number of speakers
-    numSpeakersInput.addEventListener('change', () => {
-        let numSpeakers = parseInt(numSpeakersInput.value);
-        if (numSpeakers < 2) numSpeakers = 2;
-        if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
-        numSpeakersInput.value = numSpeakers;
-        initializeSpeakers();
-    });
-
-    // Call initializeSpeakers on page load
+// Event listener for changes in the number of speakers
+numSpeakersInput.addEventListener('change', () => {
+    let numSpeakers = parseInt(numSpeakersInput.value);
+    if (numSpeakers < 2) numSpeakers = 2;
+    if (numSpeakers > maxSpeakers) numSpeakers = maxSpeakers;
+    numSpeakersInput.value = numSpeakers;
     initializeSpeakers();
+});
 
- 
+// Call initializeSpeakers on page load
+initializeSpeakers();
 
 generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
@@ -115,10 +102,8 @@ async function startPodcastGeneration(text) {
     const speakers = [];
     const speakerConfigs = document.querySelectorAll('.speaker-config');
     speakerConfigs.forEach(config => {
-        const nameInput = config.querySelector('input[type="text"]');
-        const voiceSelect = config.querySelector('select');
-        const name = nameInput.value.trim();
-        const voice = voiceSelect.value;
+        const name = config.querySelector('input').value.trim();
+        const voice = config.querySelector('select').value;
         speakers.push({ name, voice });
     });
 
@@ -132,6 +117,9 @@ async function startPodcastGeneration(text) {
     conversation.forEach(line => {
         const lineDiv = document.createElement('div');
         let content = `${line.speaker}: ${line.dialogue}`;
+        if (line.actions && line.actions.length > 0) {
+            content += ' ' + line.actions.map(a => `[${a}]`).join(' ');
+        }
         lineDiv.textContent = content;
         conversationDiv.appendChild(lineDiv);
     });
@@ -141,11 +129,11 @@ async function startPodcastGeneration(text) {
         const line = conversation[i];
         progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
         try {
-            const speaker = speakers.find(s => s.name === line.speaker);
-            if (!speaker) {
-                throw new Error(`Speaker not found: ${line.speaker}`);
+            const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
+            if (!speakerVoice) {
+                throw new Error(`Voice not found for speaker ${line.speaker}`);
             }
-            const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, speaker.voice);
+            const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, line.actions, speakerVoice);
             audioBuffers.push(audioBuffer);
         } catch (error) {
             console.error(`Error generating audio for line ${i + 1}:`, error);
@@ -156,8 +144,15 @@ async function startPodcastGeneration(text) {
 
     progressDiv.textContent = 'All audio generated. Preparing to play...';
 
-    // Step 4: Play the podcast with overlapping audio
-    playOverlappingAudio(conversation, audioBuffers);
+    // Step 4: Create and display the play button
+    const playButton = document.createElement('button');
+    playButton.textContent = 'Play Podcast';
+    playButton.classList.add('play-button');
+    playButton.onclick = () => {
+        playButton.disabled = true;
+        playOverlappingAudio(conversation, audioBuffers);
+    };
+    conversationDiv.appendChild(playButton);
 }
 
 async function generateFullConversation(topicText, speakers) {
@@ -187,7 +182,7 @@ function parseConversation(conversationText) {
             let speaker = match[1].trim();
             let dialogue = match[2].trim();
 
-            // Check for interruptions (dialogue ending with '--' or starting with '--')
+            // Check for interruptions (dialogue ending with '--')
             const isInterruption = dialogue.endsWith('--');
             const isContinuation = dialogue.startsWith('--');
 
@@ -207,11 +202,18 @@ function parseConversation(conversationText) {
     return conversation;
 }
 
-async function generateAudioBuffer(speaker, dialogue, voice) {
+
+async function generateAudioBuffer(speaker, dialogue, actions, voice) {
+    // Combine dialogue and actions
+    let fullDialogue = dialogue;
+    if (actions && actions.length > 0) {
+        fullDialogue += ' ' + actions.map(a => `[${a}]`).join(' ');
+    }
+
     const response = await fetch('/api/generate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speaker, dialogue, voice })
+        body: JSON.stringify({ speaker, dialogue: fullDialogue, voice })
     });
 
     if (!response.ok) {
@@ -236,8 +238,6 @@ function playOverlappingAudio(conversation, audioBuffers) {
     let currentTime = audioContext.currentTime;
     const overlapDuration = 0.5; // Duration of overlap in seconds
 
-    const sources = [];
-
     for (let i = 0; i < audioBuffers.length; i++) {
         const buffer = audioBuffers[i];
         const line = conversation[i];
@@ -249,6 +249,7 @@ function playOverlappingAudio(conversation, audioBuffers) {
         // Determine when to start the audio source
         let startTime = currentTime;
 
+        // Check if the previous line was an interruption
         if (i > 0 && conversation[i - 1].isInterruption) {
             // Overlap with the previous audio by starting earlier
             startTime -= overlapDuration;
@@ -256,11 +257,10 @@ function playOverlappingAudio(conversation, audioBuffers) {
 
         source.start(startTime);
 
-        sources.push(source);
-
         // Calculate the duration to add to currentTime
         const bufferDuration = buffer.duration;
 
+        // If current line is an interruption, reduce the time added
         if (line.isInterruption) {
             currentTime += bufferDuration - overlapDuration;
         } else {
@@ -268,8 +268,34 @@ function playOverlappingAudio(conversation, audioBuffers) {
         }
     }
 
+    // Update progressDiv when playback starts and ends
     progressDiv.textContent = 'Playing podcast...';
 
-    // Handle end of playback
-    const lastSource = sources[sources.length - 1];
-    las
+    // Handle end of playback (approximate)
+    setTimeout(() => {
+        progressDiv.textContent = 'Podcast playback finished!';
+    }, (currentTime - audioContext.currentTime) * 1000);
+}
+
+
+// Loading animations
+function showLoading() {
+    let loadingOverlay = document.createElement('div');
+    loadingOverlay.classList.add('loading-overlay');
+
+    let spinner = document.createElement('div');
+    spinner.classList.add('loading-spinner');
+    spinner.innerHTML = '<div></div>';
+
+    loadingOverlay.appendChild(spinner);
+    document.body.appendChild(loadingOverlay);
+    loadingOverlay.style.display = 'block';
+}
+
+function hideLoading() {
+    let loadingOverlay = document.querySelector('.loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+        loadingOverlay.remove();
+    }
+}

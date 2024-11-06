@@ -4,11 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>🎙️ Podcast Generator</title>
-    <!-- Ensure the CSS file is correctly linked -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Add an onload event to ensure scripts run after the page loads -->
     <div class="container">
         <h1>🎙️ Podcast Generator</h1>
         <textarea id="text-input" placeholder="Enter your topic here..."></textarea>
@@ -16,7 +14,6 @@
         <div id="speaker-settings">
             <label for="num-speakers">Number of Speakers (2-6):</label>
             <input type="number" id="num-speakers" name="num-speakers" min="2" max="6" value="4">
-            
             <div id="speakers-container">
                 <!-- Speaker configurations will be dynamically added here -->
             </div>
@@ -30,7 +27,6 @@
             <!-- Conversation lines will appear here -->
         </div>
     </div>
-    <!-- Place the script tag at the end of the body -->
     <script src="script.js"></script>
 </body>
 </html>
