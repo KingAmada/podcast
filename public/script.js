@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of available voices
     const availableVoices = [
-        { name: 'Jenny (Female)', value: 'nova' },
-        { name: 'Emma (Female)', value: 'shimmer' },
-        { name: 'Mike (Male)', value: 'echo' },
-        { name: 'John (Male)', value: 'onyx' },
-        { name: 'Jane (Female)', value: 'fable' },
-        { name: 'Andy (Male)', value: 'alloy' }
+        { name: 'Nova', value: 'nova' },
+        { name: 'Shimmer', value: 'shimmer' },
+        { name: 'Echo', value: 'echo' },
+        { name: 'Onyx', value: 'onyx' },
+        { name: 'Fable', value: 'fable' },
+        { name: 'Alloy', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
@@ -118,108 +118,107 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function startPodcastGeneration(text, desiredDuration, promoText) {
-    progressDiv.textContent = 'Generating conversation...';
-    conversationDiv.innerHTML = '';
-    let audioBuffers = [];
-    let conversation = [];
+        progressDiv.textContent = 'Generating conversation...';
+        conversationDiv.innerHTML = '';
+        let audioBuffers = [];
+        let conversation = [];
 
-    // Get speaker settings
-    const speakers = [];
-    const speakerConfigs = document.querySelectorAll('.speaker-config');
-    speakerConfigs.forEach(config => {
-        const nameInput = config.querySelector('input[type="text"]');
-        const voiceSelect = config.querySelector('select');
-        const personalityInput = config.querySelector('.personality-input');
-        const name = nameInput.value.trim();
-        const voice = voiceSelect.value;
-        const personalityPrompt = personalityInput.value.trim();
-        speakers.push({ name, voice, personalityPrompt });
-    });
-
-    // Step 1: Estimate the number of lines needed
-    const averageWordsPerMinute = 130; // Adjust as needed
-    const averageWordsPerLine = 10; // Estimated average words per line
-    const totalWordsNeeded = desiredDuration * averageWordsPerMinute;
-    const totalLinesNeeded = Math.ceil(totalWordsNeeded / averageWordsPerLine);
-
-    // Determine lines per chunk to stay within API token limits
-    const maxTokensPerChunk = 500; // OpenAI API limit per request
-    const estimatedTokensPerLine = 15; // Average tokens per line (adjust as needed)
-    const maxLinesPerChunk = Math.floor(maxTokensPerChunk / estimatedTokensPerLine);
-
-    const linesPerChunk = Math.min(maxLinesPerChunk, totalLinesNeeded);
-    const totalChunks = Math.ceil(totalLinesNeeded / linesPerChunk);
-
-    let previousLines = ''; // To keep track of previous lines for context
-
-    // Step 2: Generate the conversation in chunks
-    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-        const isFirstChunk = chunkIndex === 0;
-        const isLastChunk = chunkIndex === totalChunks - 1;
-
-        progressDiv.textContent = `Generating podcast ${chunkIndex + 1} of ${totalChunks}...`;
-
-        const conversationText = await generateConversationChunk(
-            text,
-            speakers,
-            previousLines,
-            linesPerChunk,
-            promoText,
-            isFirstChunk,
-            isLastChunk
-        );
-
-        const chunkConversation = parseConversation(conversationText);
-
-        // Update previousLines with the last few lines for context
-        previousLines = chunkConversation
-            .slice(-2)
-            .map(line => `${line.speaker}: ${line.dialogue}`)
-            .join('\n');
-
-        conversation = conversation.concat(chunkConversation);
-
-        // Display the conversation as it gets generated
-        chunkConversation.forEach(line => {
-            const lineDiv = document.createElement('div');
-            let content = `${line.speaker}: ${line.dialogue}`;
-            lineDiv.textContent = content;
-            conversationDiv.appendChild(lineDiv);
+        // Get speaker settings
+        const speakers = [];
+        const speakerConfigs = document.querySelectorAll('.speaker-config');
+        speakerConfigs.forEach(config => {
+            const nameInput = config.querySelector('input[type="text"]');
+            const voiceSelect = config.querySelector('select');
+            const personalityInput = config.querySelector('.personality-input');
+            const name = nameInput.value.trim();
+            const voice = voiceSelect.value;
+            const personalityPrompt = personalityInput.value.trim();
+            speakers.push({ name, voice, personalityPrompt });
         });
+
+        // Step 1: Estimate the number of lines needed
+        const averageWordsPerMinute = 130; // Adjust as needed
+        const averageWordsPerLine = 10; // Estimated average words per line
+        const totalWordsNeeded = desiredDuration * averageWordsPerMinute;
+        const totalLinesNeeded = Math.ceil(totalWordsNeeded / averageWordsPerLine);
+
+        // Determine lines per chunk to stay within API token limits
+        const maxTokensPerChunk = 500; // OpenAI API limit per request
+        const estimatedTokensPerLine = 15; // Average tokens per line (adjust as needed)
+        const maxLinesPerChunk = Math.floor(maxTokensPerChunk / estimatedTokensPerLine);
+
+        const linesPerChunk = Math.min(maxLinesPerChunk, totalLinesNeeded);
+        const totalChunks = Math.ceil(totalLinesNeeded / linesPerChunk);
+
+        let previousLines = ''; // To keep track of previous lines for context
+
+        // Step 2: Generate the conversation in chunks
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const isFirstChunk = chunkIndex === 0;
+            const isLastChunk = chunkIndex === totalChunks - 1;
+
+            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
+
+            const conversationText = await generateConversationChunk(
+                text,
+                speakers,
+                previousLines,
+                linesPerChunk,
+                promoText,
+                isFirstChunk,
+                isLastChunk
+            );
+
+            const chunkConversation = parseConversation(conversationText);
+
+            // Update previousLines with the last few lines for context
+            previousLines = chunkConversation
+                .slice(-2)
+                .map(line => `${line.speaker}: ${line.dialogue}`)
+                .join('\n');
+
+            conversation = conversation.concat(chunkConversation);
+
+            // Display the conversation as it gets generated
+            chunkConversation.forEach(line => {
+                const lineDiv = document.createElement('div');
+                let content = `${line.speaker}: ${line.dialogue}`;
+                lineDiv.textContent = content;
+                conversationDiv.appendChild(lineDiv);
+            });
+        }
+
+        // Step 3: Generate audio for each line with concurrency limit
+        audioBuffers = await generateAudioForConversation(conversation, speakers);
+
+        progressDiv.textContent = 'All audio generated. Preparing to play...';
+
+        // Step 4: Create and display the play button
+        const playButton = document.createElement('button');
+        playButton.textContent = 'Play Podcast';
+        playButton.classList.add('play-button');
+        playButton.onclick = () => {
+            playButton.disabled = true;
+            playOverlappingAudio(conversation, audioBuffers);
+        };
+        conversationDiv.appendChild(playButton);
     }
 
-    // Step 3: Generate audio for each line with concurrency limit
-    audioBuffers = await generateAudioForConversation(conversation, speakers);
+    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk) {
+        const response = await fetch('/api/generate-conversation-chunk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk })
+        });
 
-    progressDiv.textContent = 'All audio generated. Preparing to play...';
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error generating conversation chunk: ${errorText}`);
+        }
 
-    // Step 4: Create and display the play button
-    const playButton = document.createElement('button');
-    playButton.textContent = 'Play Podcast';
-    playButton.classList.add('play-button');
-    playButton.onclick = () => {
-        playButton.disabled = true;
-        playOverlappingAudio(conversation, audioBuffers);
-    };
-    conversationDiv.appendChild(playButton);
-}
-
-// Adjusted generateConversationChunk function to accept isFirstChunk and isLastChunk
-async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk) {
-    const response = await fetch('/api/generate-conversation-chunk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk })
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error generating conversation chunk: ${errorText}`);
+        const data = await response.json();
+        return data.conversationText;
     }
-
-    const data = await response.json();
-    return data.conversationText;
-}
 
     function parseConversation(conversationText) {
         const lines = conversationText.split('\n').filter(line => line.trim() !== '');
@@ -261,7 +260,7 @@ async function generateConversationChunk(topicText, speakers, previousLines, lin
             while (index < conversation.length) {
                 const i = index++;
                 const line = conversation[i];
-                progressDiv.textContent = `Generating podcast ${i + 1} of ${conversation.length}...`;
+                progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
@@ -316,9 +315,7 @@ async function generateConversationChunk(topicText, speakers, previousLines, lin
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
         try {
-            const audioBuffer = await new Promise((resolve, reject) => {
-                audioContext.decodeAudioData(arrayBuffer, resolve, reject);
-            });
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             return audioBuffer;
         } catch (error) {
             console.error('Error decoding audio data:', error);
@@ -338,6 +335,7 @@ async function generateConversationChunk(topicText, speakers, previousLines, lin
         const overlapDuration = 0.5; // Duration of overlap in seconds
 
         const sources = [];
+        const adjustedBuffers = []; // Array to hold adjusted audio buffers for merging
 
         for (let i = 0; i < audioBuffers.length; i++) {
             const buffer = audioBuffers[i];
@@ -368,9 +366,24 @@ async function generateConversationChunk(topicText, speakers, previousLines, lin
             } else {
                 currentTime += buffer.duration;
             }
+
+            // Store the adjusted buffer for merging
+            adjustedBuffers.push(buffer);
         }
 
         progressDiv.textContent = 'Playing podcast...';
+
+        // Combine the adjusted audio buffers
+        const combinedBuffer = combineAudioBuffers(adjustedBuffers, audioContext);
+
+        // Convert combined buffer to WAV
+        const wavData = audioBufferToWav(combinedBuffer);
+
+        // Create a Blob from the WAV data
+        const audioBlob = new Blob([new DataView(wavData)], { type: 'audio/wav' });
+
+        // Create a download link
+        createDownloadLink(audioBlob);
 
         // Handle end of playback
         const lastSource = sources[sources.length - 1];
@@ -381,6 +394,141 @@ async function generateConversationChunk(topicText, speakers, previousLines, lin
         } else {
             alert('No audio sources to play.');
         }
+    }
+
+    function combineAudioBuffers(audioBuffers, audioContext) {
+        const numberOfChannels = audioBuffers[0].numberOfChannels;
+        let totalLength = 0;
+
+        // Calculate the total length of the combined buffer
+        audioBuffers.forEach(buffer => {
+            totalLength += buffer.length;
+        });
+
+        // Create a new buffer to hold the combined audio
+        const combinedBuffer = audioContext.createBuffer(
+            numberOfChannels,
+            totalLength,
+            audioBuffers[0].sampleRate
+        );
+
+        // Copy the individual buffers into the combined buffer
+        let offset = 0;
+        audioBuffers.forEach(buffer => {
+            for (let channel = 0; channel < numberOfChannels; channel++) {
+                combinedBuffer.getChannelData(channel).set(buffer.getChannelData(channel), offset);
+            }
+            offset += buffer.length;
+        });
+
+        return combinedBuffer;
+    }
+
+    function audioBufferToWav(buffer, options = {}) {
+        const numChannels = buffer.numberOfChannels;
+        const sampleRate = buffer.sampleRate;
+        const format = options.float32 ? 3 : 1; // 3 = IEEE Float, 1 = PCM
+        const bitDepth = format === 3 ? 32 : 16;
+
+        let result;
+        if (numChannels === 2) {
+            result = interleave(buffer.getChannelData(0), buffer.getChannelData(1));
+        } else {
+            result = buffer.getChannelData(0);
+        }
+
+        return encodeWAV(result, sampleRate, numChannels, format, bitDepth);
+    }
+
+    function interleave(inputL, inputR) {
+        const length = inputL.length + inputR.length;
+        const result = new Float32Array(length);
+
+        let index = 0;
+        let inputIndex = 0;
+
+        while (index < length) {
+            result[index++] = inputL[inputIndex];
+            result[index++] = inputR[inputIndex];
+            inputIndex++;
+        }
+        return result;
+    }
+
+    function encodeWAV(samples, sampleRate, numChannels, format, bitDepth) {
+        const buffer = new ArrayBuffer(44 + samples.length * (bitDepth / 8));
+        const view = new DataView(buffer);
+
+        /* RIFF identifier */
+        writeString(view, 0, 'RIFF');
+        /* file length */
+        view.setUint32(4, 36 + samples.length * (bitDepth / 8), true);
+        /* RIFF type */
+        writeString(view, 8, 'WAVE');
+        /* format chunk identifier */
+        writeString(view, 12, 'fmt ');
+        /* format chunk length */
+        view.setUint32(16, 16, true);
+        /* sample format (raw) */
+        view.setUint16(20, format, true);
+        /* channel count */
+        view.setUint16(22, numChannels, true);
+        /* sample rate */
+        view.setUint32(24, sampleRate, true);
+        /* byte rate (sample rate * block align) */
+        view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
+        /* block align (channel count * bytes per sample) */
+        view.setUint16(32, numChannels * (bitDepth / 8), true);
+        /* bits per sample */
+        view.setUint16(34, bitDepth, true);
+        /* data chunk identifier */
+        writeString(view, 36, 'data');
+        /* data chunk length */
+        view.setUint32(40, samples.length * (bitDepth / 8), true);
+
+        if (format === 1) { // PCM
+            floatTo16BitPCM(view, 44, samples);
+        } else {
+            writeFloat32(view, 44, samples);
+        }
+
+        return buffer;
+    }
+
+    function floatTo16BitPCM(output, offset, input) {
+        for (let i = 0; i < input.length; i++, offset += 2) {
+            let s = Math.max(-1, Math.min(1, input[i]));
+            output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+    }
+
+    function writeFloat32(output, offset, input) {
+        for (let i = 0; i < input.length; i++, offset += 4) {
+            output.setFloat32(offset, input[i], true);
+        }
+    }
+
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    }
+
+    function createDownloadLink(audioBlob) {
+        const url = URL.createObjectURL(audioBlob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'podcast.wav';
+        downloadLink.textContent = 'Download Podcast';
+
+        // Style the download link as desired
+        downloadLink.style.display = 'block';
+        downloadLink.style.marginTop = '10px';
+        downloadLink.style.color = '#fff';
+        downloadLink.style.textDecoration = 'underline';
+
+        // Add the download link to the conversationDiv or another appropriate place
+        conversationDiv.appendChild(downloadLink);
     }
 
     // Loading animations
