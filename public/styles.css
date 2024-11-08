@@ -1,23 +1,15 @@
 /* public/styles.css */
 
-/* Animated gradient background */
+/* General Styles */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(45deg, #ff6b6b, #f94d6a, #f9d423, #e8e9a1, #a1e8af, #70c1b3, #2ec4b6, #ff9f1c);
-    background-size: 1600% 1600%;
-    animation: gradientAnimation 20s ease infinite;
-    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    color: #333;
 }
 
-@keyframes gradientAnimation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Container styling */
 .container {
     max-width: 800px;
     margin: 50px auto;
@@ -25,128 +17,165 @@ body {
     text-align: center;
 }
 
-/* Input fields and text areas */
-textarea, input[type="text"], input[type="number"], select {
-    width: 100%;
-    max-width: 250px;
-    border: none;
-    border-radius: 10px;
-    padding: 15px;
-    font-size: 1em;
-    margin: 15px auto;
-    box-sizing: border-box;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.2);
+/* Title */
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
     color: #fff;
 }
 
+/* Input Fields */
+textarea, input[type="text"], input[type="number"], select {
+    width: 100%;
+    max-width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 12px;
+    font-size: 1em;
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
 textarea::placeholder, input::placeholder {
-    color: #eee;
+    color: #999;
 }
 
 textarea:focus, input[type="text"]:focus, input[type="number"]:focus, select:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.3);
+    border-color: #667eea;
 }
 
 /* Buttons */
 button {
-    max-width: 300px;
+    max-width: 200px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: #667eea;
     color: #fff;
-    padding: 15px;
+    padding: 12px;
     font-size: 1em;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin: 10px auto;
+    margin: 20px 0;
     transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: #5a67d8;
 }
 
-/* Podcast settings */
-#podcast-settings {
+button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+/* Podcast and Speaker Settings */
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     margin: 20px 0;
-    text-align: left;
+}
+
+.settings-row > div {
+    flex: 1 1 48%;
+    margin-bottom: 10px;
+}
+
+.settings-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
     color: #fff;
 }
 
-#podcast-settings label {
-    display: block;
-    margin-bottom: 5px;
+#podcast-settings {
+    text-align: left;
 }
 
 #podcast-settings input[type="number"] {
     width: 100%;
-    max-width: 600px;
 }
 
-/* Speaker settings */
-#speaker-settings {
-    margin: 20px 0;
-    text-align: left;
-    color: #fff;
-}
-
+/* Speaker Configurations */
 .speaker-config {
-    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 15px;
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
-    border-radius: 10px;
-}
-
-.speaker-config label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    border-radius: 5px;
 }
 
 .speaker-config input[type="text"],
 .speaker-config select,
 .speaker-config .personality-input {
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 1em;
-    margin: 20px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    flex: 1 1 30%;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.speaker-config input[type="text"]:last-child,
+.speaker-config select:last-child,
+.speaker-config .personality-input:last-child {
+    margin-right: 0;
 }
 
 .speaker-config input[type="text"]::placeholder,
 .speaker-config .personality-input::placeholder {
-    color: #eee;
+    color: #999;
 }
 
-.speaker-config input[type="text"]:focus,
-.speaker-config select:focus,
-.speaker-config .personality-input:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.3);
+/* Responsive Design */
+@media (max-width: 600px) {
+    .settings-row > div {
+        flex: 1 1 100%;
+    }
+
+    .speaker-config input[type="text"],
+    .speaker-config select,
+    .speaker-config .personality-input {
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
 }
 
-/* Conversation display area */
+/* Conversation Display Area */
 #conversation {
     margin-top: 30px;
     text-align: left;
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
     margin: 0 auto;
     max-width: 800px;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.2);
+    color: #333;
+    background: #f9f9f9;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
 }
 
-/* Loading overlay */
+#conversation div {
+    margin-bottom: 10px;
+}
+
+/* Progress Message */
+#progress {
+    margin-top: 20px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+/* Disclaimer */
+.disclaimer {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Loading Overlay */
 .loading-overlay {
     position: fixed;
     top: 0;
