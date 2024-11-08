@@ -44,6 +44,7 @@ Continue the conversation, ensuring coherence with the previous lines. The conti
 
 - Include natural interactions with interruptions, overlaps, and varied speaker order.
 - Use fillers like "um", "ah", "you know", "haha", "hmm".
+- Ensure that speakers interrupt each other naturally and speak in a random order, not following any fixed sequence.
 - Vary response lengths: single words and longer replies (2-3 sentences).
 - Ensure each speaker's dialogue reflects their personality or instructions as described above.
 - Avoid repeating previous content.
@@ -74,7 +75,7 @@ Provide the continuation now.
                 model: 'gpt-4o',
                 messages: messages,
                 max_tokens: 500,
-                temperature: 0.9
+                temperature: 1.0
             })
         });
 
