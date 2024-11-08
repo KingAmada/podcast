@@ -70,9 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     generateBtn.addEventListener('click', () => {
         const text = textInput.value.trim();
+        const durationInput = document.getElementById('podcast-duration');
+        const desiredDuration = parseInt(durationInput.value);
 
         if (text === '') {
             alert('Please enter a topic for the podcast.');
+            return;
+        }
+
+        if (isNaN(desiredDuration) || desiredDuration < 1) {
+            alert('Please enter a valid desired duration in minutes.');
             return;
         }
 
@@ -82,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show loading animation
         showLoading();
 
-        startPodcastGeneration(text)
+        startPodcastGeneration(text, desiredDuration)
             .catch(error => {
                 console.error(error);
                 alert('An error occurred while generating the podcast.');
@@ -95,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    async function startPodcastGeneration(text) {
+    async function startPodcastGeneration(text, desiredDuration) {
         progressDiv.textContent = 'Generating conversation...';
         conversationDiv.innerHTML = '';
         let audioBuffers = [];
@@ -112,13 +119,23 @@ document.addEventListener('DOMContentLoaded', () => {
             speakers.push({ name, voice });
         });
 
-        // Define the number of chunks and the number of lines per chunk
-        const totalChunks = 3; // Adjust this number as needed
-        const linesPerChunk = 7; // Total desired lines divided by totalChunks
+        // Step 1: Estimate the number of lines needed
+        const averageWordsPerMinute = 130; // Adjust as needed
+        const averageWordsPerLine = 10; // Estimated average words per line
+        const totalWordsNeeded = desiredDuration * averageWordsPerMinute;
+        const totalLinesNeeded = Math.ceil(totalWordsNeeded / averageWordsPerLine);
+
+        // Determine lines per chunk to stay within API token limits
+        const maxTokensPerChunk = 500; // OpenAI API limit per request
+        const estimatedTokensPerLine = 15; // Average tokens per line (adjust as needed)
+        const maxLinesPerChunk = Math.floor(maxTokensPerChunk / estimatedTokensPerLine);
+
+        const linesPerChunk = Math.min(maxLinesPerChunk, totalLinesNeeded);
+        const totalChunks = Math.ceil(totalLinesNeeded / linesPerChunk);
 
         let previousLines = ''; // To keep track of previous lines for context
 
-        // Step 1: Generate the conversation in chunks
+        // Step 2: Generate the conversation in chunks
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
             progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
 
@@ -148,12 +165,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Step 2: Generate audio for each line with concurrency limit
+        // Step 3: Generate audio for each line with concurrency limit
         await generateAudioForConversation(conversation, speakers, audioBuffers);
 
         progressDiv.textContent = 'All audio generated. Preparing to play...';
 
-        // Step 3: Create and display the play button
+        // Step 4: Create and display the play button
         const playButton = document.createElement('button');
         playButton.textContent = 'Play Podcast';
         playButton.classList.add('play-button');
