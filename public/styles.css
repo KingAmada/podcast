@@ -11,12 +11,18 @@ body {
     font-family: 'Poppins', sans-serif;
     color: #fff;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: linear-gradient(-45deg, #667eea, #764ba2, #6bcbef, #a0a0a0);
     background-size: 400% 400%;
     animation: gradientAnimation 15s ease infinite;
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+/* Container Styling */
+.container {
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
 }
 
 /* Animations */
@@ -195,20 +201,20 @@ button:disabled {
     padding-right: 40px;
 }
 
-/* Advertisement Section */
-.ad-section {
+/* Promotion Section */
+.promo-section {
     margin-top: 20px;
     text-align: left;
 }
 
-.ad-section label {
+.promo-section label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
     color: #fff;
 }
 
-.ad-section input[type="text"] {
+.promo-section input[type="text"] {
     width: 100%;
     border: none;
     border-radius: 8px;
