@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 }
 
+
     // Event listener for changes in the number of speakers
     numSpeakersInput.addEventListener('change', () => {
         let numSpeakers = parseInt(numSpeakersInput.value);
