@@ -22,57 +22,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize speaker configurations
     function initializeSpeakers() {
-        const numSpeakers = parseInt(numSpeakersInput.value);
-        speakersContainer.innerHTML = '';
+    const numSpeakers = parseInt(numSpeakersInput.value);
+    speakersContainer.innerHTML = '';
 
-        for (let i = 0; i < numSpeakers; i++) {
-            const speakerConfig = document.createElement('div');
-            speakerConfig.classList.add('speaker-config');
+    for (let i = 0; i < numSpeakers; i++) {
+        const speakerConfig = document.createElement('div');
+        speakerConfig.classList.add('speaker-config');
 
-            // Speaker Label
-            const speakerLabel = document.createElement('label');
-            speakerLabel.textContent = `Speaker ${i + 1}`;
+        // Speaker Name Input
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = `Speaker${i + 1}`;
+        nameInput.placeholder = `Name`;
 
-            // Speaker Name Input
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.value = `Speaker${i + 1}`;
-            nameInput.placeholder = `Name for Speaker ${i + 1}`;
+        // Voice Selection Dropdown
+        const voiceSelect = document.createElement('select');
 
-            // Voice Selection Dropdown
-            const voiceSelect = document.createElement('select');
+        availableVoices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.value;
+            option.textContent = voice.name;
+            voiceSelect.appendChild(option);
+        });
 
-            availableVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.value = voice.value;
-                option.textContent = voice.name;
-                voiceSelect.appendChild(option);
-            });
+        // Assign voices in order
+        const voiceIndex = i % availableVoices.length;
+        voiceSelect.selectedIndex = voiceIndex;
 
-            // Assign voices in order
-            const voiceIndex = i % availableVoices.length;
-            voiceSelect.selectedIndex = voiceIndex;
+        // Personality Prompt Input
+        const personalityInput = document.createElement('input');
+        personalityInput.type = 'text';
+        personalityInput.placeholder = `Personality prompt`;
+        personalityInput.classList.add('personality-input');
 
-            // Personality Prompt Input
-            const personalityInput = document.createElement('input');
-            personalityInput.type = 'text';
+        // Update placeholder when name changes
+        nameInput.addEventListener('input', () => {
             personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
-            personalityInput.classList.add('personality-input');
+        });
 
-            // Update placeholder when name changes
-            nameInput.addEventListener('input', () => {
-                personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
-            });
+        // Append elements to speakerConfig
+        speakerConfig.appendChild(nameInput);
+        speakerConfig.appendChild(voiceSelect);
+        speakerConfig.appendChild(personalityInput);
 
-            // Append elements to speakerConfig
-            speakerConfig.appendChild(speakerLabel);
-            speakerConfig.appendChild(nameInput);
-            speakerConfig.appendChild(voiceSelect);
-            speakerConfig.appendChild(personalityInput);
-
-            speakersContainer.appendChild(speakerConfig);
-        }
+        speakersContainer.appendChild(speakerConfig);
     }
+}
 
     // Event listener for changes in the number of speakers
     numSpeakersInput.addEventListener('change', () => {
