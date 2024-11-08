@@ -68,6 +68,23 @@ button:hover {
     background-color: rgba(255, 255, 255, 0.5);
 }
 
+/* Podcast settings */
+#podcast-settings {
+    margin: 20px 0;
+    text-align: left;
+    color: #fff;
+}
+
+#podcast-settings label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#podcast-settings input[type="number"] {
+    width: 100%;
+    max-width: 600px;
+}
+
 /* Speaker settings */
 #speaker-settings {
     margin: 20px 0;
