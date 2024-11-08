@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 2: Generate the conversation in chunks
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating podcast ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             while (index < conversation.length) {
                 const i = index++;
                 const line = conversation[i];
-                progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
+                progressDiv.textContent = `Generating podcast ${i + 1} of ${conversation.length}...`;
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
