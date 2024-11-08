@@ -118,102 +118,108 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function startPodcastGeneration(text, desiredDuration, promoText) {
-        progressDiv.textContent = 'Generating conversation...';
-        conversationDiv.innerHTML = '';
-        let audioBuffers = []; // This will be filled with the generated audio buffers
-        let conversation = [];
+    progressDiv.textContent = 'Generating conversation...';
+    conversationDiv.innerHTML = '';
+    let audioBuffers = [];
+    let conversation = [];
 
-        // Get speaker settings
-        const speakers = [];
-        const speakerConfigs = document.querySelectorAll('.speaker-config');
-        speakerConfigs.forEach(config => {
-            const nameInput = config.querySelector('input[type="text"]');
-            const voiceSelect = config.querySelector('select');
-            const personalityInput = config.querySelector('.personality-input');
-            const name = nameInput.value.trim();
-            const voice = voiceSelect.value;
-            const personalityPrompt = personalityInput.value.trim();
-            speakers.push({ name, voice, personalityPrompt });
+    // Get speaker settings
+    const speakers = [];
+    const speakerConfigs = document.querySelectorAll('.speaker-config');
+    speakerConfigs.forEach(config => {
+        const nameInput = config.querySelector('input[type="text"]');
+        const voiceSelect = config.querySelector('select');
+        const personalityInput = config.querySelector('.personality-input');
+        const name = nameInput.value.trim();
+        const voice = voiceSelect.value;
+        const personalityPrompt = personalityInput.value.trim();
+        speakers.push({ name, voice, personalityPrompt });
+    });
+
+    // Step 1: Estimate the number of lines needed
+    const averageWordsPerMinute = 130; // Adjust as needed
+    const averageWordsPerLine = 10; // Estimated average words per line
+    const totalWordsNeeded = desiredDuration * averageWordsPerMinute;
+    const totalLinesNeeded = Math.ceil(totalWordsNeeded / averageWordsPerLine);
+
+    // Determine lines per chunk to stay within API token limits
+    const maxTokensPerChunk = 500; // OpenAI API limit per request
+    const estimatedTokensPerLine = 15; // Average tokens per line (adjust as needed)
+    const maxLinesPerChunk = Math.floor(maxTokensPerChunk / estimatedTokensPerLine);
+
+    const linesPerChunk = Math.min(maxLinesPerChunk, totalLinesNeeded);
+    const totalChunks = Math.ceil(totalLinesNeeded / linesPerChunk);
+
+    let previousLines = ''; // To keep track of previous lines for context
+
+    // Step 2: Generate the conversation in chunks
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const isFirstChunk = chunkIndex === 0;
+        const isLastChunk = chunkIndex === totalChunks - 1;
+
+        progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
+
+        const conversationText = await generateConversationChunk(
+            text,
+            speakers,
+            previousLines,
+            linesPerChunk,
+            promoText,
+            isFirstChunk,
+            isLastChunk
+        );
+
+        const chunkConversation = parseConversation(conversationText);
+
+        // Update previousLines with the last few lines for context
+        previousLines = chunkConversation
+            .slice(-2)
+            .map(line => `${line.speaker}: ${line.dialogue}`)
+            .join('\n');
+
+        conversation = conversation.concat(chunkConversation);
+
+        // Display the conversation as it gets generated
+        chunkConversation.forEach(line => {
+            const lineDiv = document.createElement('div');
+            let content = `${line.speaker}: ${line.dialogue}`;
+            lineDiv.textContent = content;
+            conversationDiv.appendChild(lineDiv);
         });
-
-        // Step 1: Estimate the number of lines needed
-        const averageWordsPerMinute = 130; // Adjust as needed
-        const averageWordsPerLine = 10; // Estimated average words per line
-        const totalWordsNeeded = desiredDuration * averageWordsPerMinute;
-        const totalLinesNeeded = Math.ceil(totalWordsNeeded / averageWordsPerLine);
-
-        // Determine lines per chunk to stay within API token limits
-        const maxTokensPerChunk = 500; // OpenAI API limit per request
-        const estimatedTokensPerLine = 15; // Average tokens per line (adjust as needed)
-        const maxLinesPerChunk = Math.floor(maxTokensPerChunk / estimatedTokensPerLine);
-
-        const linesPerChunk = Math.min(maxLinesPerChunk, totalLinesNeeded);
-        const totalChunks = Math.ceil(totalLinesNeeded / linesPerChunk);
-
-        let previousLines = ''; // To keep track of previous lines for context
-
-        // Step 2: Generate the conversation in chunks
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
-
-            const conversationText = await generateConversationChunk(
-                text,
-                speakers,
-                previousLines,
-                linesPerChunk,
-                promoText // Pass promoText here
-            );
-
-            const chunkConversation = parseConversation(conversationText);
-
-            // Update previousLines with the last few lines for context
-            previousLines = chunkConversation
-                .slice(-2)
-                .map(line => `${line.speaker}: ${line.dialogue}`)
-                .join('\n');
-
-            conversation = conversation.concat(chunkConversation);
-
-            // Display the conversation as it gets generated
-            chunkConversation.forEach(line => {
-                const lineDiv = document.createElement('div');
-                let content = `${line.speaker}: ${line.dialogue}`;
-                lineDiv.textContent = content;
-                conversationDiv.appendChild(lineDiv);
-            });
-        }
-
-        // Step 3: Generate audio for each line with concurrency limit
-        audioBuffers = await generateAudioForConversation(conversation, speakers);
-
-        progressDiv.textContent = 'All audio generated. Preparing to play...';
-
-        // Step 4: Create and display the play button
-        const playButton = document.createElement('button');
-        playButton.textContent = 'Play Podcast';
-        playButton.classList.add('play-button');
-        playButton.onclick = () => {
-            playButton.disabled = true;
-            playOverlappingAudio(conversation, audioBuffers);
-        };
-        conversationDiv.appendChild(playButton);
     }
 
-    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, promoText) {
-        const response = await fetch('/api/generate-conversation-chunk', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, promoText })
-        });
+    // Step 3: Generate audio for each line with concurrency limit
+    audioBuffers = await generateAudioForConversation(conversation, speakers);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error generating conversation chunk: ${errorText}`);
-        }
+    progressDiv.textContent = 'All audio generated. Preparing to play...';
 
-        const data = await response.json();
-        return data.conversationText;
+    // Step 4: Create and display the play button
+    const playButton = document.createElement('button');
+    playButton.textContent = 'Play Podcast';
+    playButton.classList.add('play-button');
+    playButton.onclick = () => {
+        playButton.disabled = true;
+        playOverlappingAudio(conversation, audioBuffers);
+    };
+    conversationDiv.appendChild(playButton);
+}
+
+// Adjusted generateConversationChunk function to accept isFirstChunk and isLastChunk
+async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk) {
+    const response = await fetch('/api/generate-conversation-chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error generating conversation chunk: ${errorText}`);
     }
+
+    const data = await response.json();
+    return data.conversationText;
+}
 
     function parseConversation(conversationText) {
         const lines = conversationText.split('\n').filter(line => line.trim() !== '');
