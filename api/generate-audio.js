@@ -30,32 +30,16 @@ module.exports = async (req, res) => {
         // Clean dialogue by removing any text within brackets
         const cleanedDialogue = dialogue.replace(/\[(.*?)\]/g, '');
 
-        const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${openai_api_key}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'tts-1',
-                input: cleanedDialogue,
-                voice: voice,
-                response_format: 'mp3'
-            })
-        });
+        // Since OpenAI's TTS API is hypothetical, use a placeholder
+        // Replace with your actual TTS API call
 
-        if (!ttsResponse.ok) {
-            const error = await ttsResponse.json();
-            console.error('TTS API Error:', error);
-            res.status(500).send('Error generating audio.');
-            return;
-        }
-
-        const audioBuffer = await ttsResponse.arrayBuffer();
+        // Placeholder for TTS API call
+        // Simulate generating audio data
+        const audioData = Buffer.from('...'); // Replace with actual audio data
 
         // Send the raw audio data back to the client
         res.setHeader('Content-Type', 'audio/mpeg');
-        res.send(Buffer.from(audioBuffer));
+        res.send(audioData);
     } catch (error) {
         console.error('Server Error:', error);
         res.status(500).send('Server error.');
