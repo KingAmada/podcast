@@ -104,12 +104,12 @@ button:disabled {
     flex-wrap: wrap;
     justify-content: space-between;
     margin: 20px 0;
+    margin-right: 20px;
 }
 
 .settings-row > div {
     flex: 1 1 48%;
     margin-bottom: 10px;
-    margin-right: 20px;
 }
 
 .settings-row label {
