@@ -14,11 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // List of available voices
     const availableVoices = [
         { name: 'Jenny (Female)', value: 'nova' },
-        { name: 'Emma (Female)', value: 'shimmer' },
-        { name: 'John (Male)', value: 'echo' },
-        { name: 'Thomas (Male)', value: 'onyx' },
-        { name: 'Fendy (Female)', value: 'fable' },
-        { name: 'Bond (Male)', value: 'alloy' }
+        { name: 'Tina (Female)', value: 'shimmer' },
+        { name: 'James (Male)', value: 'echo' },
+        { name: 'Bond (Male)', value: 'onyx' },
+        { name: 'Marjane (Female)', value: 'fable' },
+        { name: 'Thomas (Male)', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFirstChunk = chunkIndex === 0;
             const isLastChunk = chunkIndex === totalChunks - 1;
 
-            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating Podcast ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             while (index < conversation.length) {
                 const i = index++;
                 const line = conversation[i];
-                progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
+                progressDiv.textContent = `Generating Podcast ${i + 1} of ${conversation.length}...`;
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
@@ -323,13 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function playOverlappingAudio(conversation, audioBuffers) {
+    async function playOverlappingAudio(conversation, audioBuffers) {
         if (!audioBuffers || audioBuffers.length === 0) {
             alert('No audio buffers available for playback.');
             return;
         }
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Load the dramatic sound effect
+        const dramaticSoundBuffer = await loadDramaticSound(audioContext);
 
         let currentTime = audioContext.currentTime;
         const overlapDuration = 0.5; // Duration of overlap in seconds
@@ -341,9 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const buffer = audioBuffers[i];
             const line = conversation[i];
 
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = 1.0; // Default volume
+
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
-            source.connect(audioContext.destination);
+            source.connect(gainNode).connect(audioContext.destination);
 
             // Determine when to start the audio source
             let startTime = currentTime;
@@ -357,6 +363,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             source.start(startTime);
+
+            // If this is the ad narration, mix in the dramatic sound
+            if (line.speaker === 'Ad Narrator') {
+                const dramaticSource = audioContext.createBufferSource();
+                dramaticSource.buffer = dramaticSoundBuffer;
+
+                const dramaticGainNode = audioContext.createGain();
+                dramaticGainNode.gain.value = 0.5; // Adjust volume as needed
+
+                dramaticSource.connect(dramaticGainNode).connect(audioContext.destination);
+                dramaticSource.start(startTime);
+
+                // Ensure both sources stop at the same time
+                const adDuration = Math.max(buffer.duration, dramaticSoundBuffer.duration);
+                source.stop(startTime + adDuration);
+                dramaticSource.stop(startTime + adDuration);
+            }
 
             sources.push(source);
 
@@ -374,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressDiv.textContent = 'Playing podcast...';
 
         // Combine the adjusted audio buffers
-        const combinedBuffer = combineAudioBuffers(adjustedBuffers, audioContext);
+        const combinedBuffer = combineAudioBuffers(adjustedBuffers, audioContext, conversation, dramaticSoundBuffer);
 
         // Convert combined buffer to WAV
         const wavData = audioBufferToWav(combinedBuffer);
@@ -396,7 +419,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function combineAudioBuffers(audioBuffers, audioContext) {
+    // Function to load the dramatic sound effect
+    async function loadDramaticSound(audioContext) {
+        try {
+            const response = await fetch('dramatic_sound.mp3'); // Adjust the path if necessary
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            return audioBuffer;
+        } catch (error) {
+            console.error('Error loading dramatic sound:', error);
+            alert('Failed to load dramatic sound effect.');
+            return null;
+        }
+    }
+
+    function combineAudioBuffers(audioBuffers, audioContext, conversation, dramaticSoundBuffer) {
         const numberOfChannels = audioBuffers[0].numberOfChannels;
         let totalLength = 0;
 
@@ -414,12 +451,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Copy the individual buffers into the combined buffer
         let offset = 0;
-        audioBuffers.forEach(buffer => {
+        for (let i = 0; i < audioBuffers.length; i++) {
+            const buffer = audioBuffers[i];
+            const line = conversation[i];
+
+            // Get channel data for each channel
             for (let channel = 0; channel < numberOfChannels; channel++) {
-                combinedBuffer.getChannelData(channel).set(buffer.getChannelData(channel), offset);
+                const combinedData = combinedBuffer.getChannelData(channel);
+                const bufferData = buffer.getChannelData(channel);
+
+                // Copy the buffer data into the combined buffer
+                combinedData.set(bufferData, offset);
+
+                // If this is the ad narration, mix in the dramatic sound
+                if (line.speaker === 'Ad Narrator' && dramaticSoundBuffer) {
+                    const dramaticData = dramaticSoundBuffer.getChannelData(channel);
+                    const length = Math.min(bufferData.length, dramaticData.length);
+
+                    for (let j = 0; j < length; j++) {
+                        combinedData[offset + j] += dramaticData[j] * 0.5; // Adjust volume as needed
+                    }
+                }
             }
+
             offset += buffer.length;
-        });
+        }
 
         return combinedBuffer;
     }
