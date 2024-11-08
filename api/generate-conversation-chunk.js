@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const { topicText, speakers, previousLines, linesPerChunk } = req.body;
+    const { topicText, speakers, previousLines, linesPerChunk, adText } = req.body;
 
     if (!topicText || !speakers || speakers.length < 2 || !linesPerChunk) {
         res.status(400).send('Missing or invalid parameters.');
@@ -37,6 +37,12 @@ They are discussing the following topic:
 
 "${topicText}"
 
+An advertisement for the following product/service should be included at an appropriate point in the conversation:
+
+"${adText}"
+
+The advertisement should be introduced with a brief pause, like "Hey listeners, we'll be right back after this short break." A new speaker, "Ad Narrator", who isn't part of the main discussion, will present the advertisement positively.
+
 Previous conversation:
 ${previousLines}
 
@@ -47,6 +53,7 @@ Continue the conversation, ensuring coherence with the previous lines. The conti
 - Ensure that speakers interrupt each other naturally and speak in a random order, not following any fixed sequence.
 - Vary response lengths: single words and longer replies (2-3 sentences).
 - Ensure each speaker's dialogue reflects their personality or instructions as described above.
+- Incorporate the advertisement as described.
 - Avoid repeating previous content.
 - Be approximately ${linesPerChunk} lines long.
 
