@@ -1,4 +1,5 @@
 // api/generate-audio.js
+
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
@@ -14,16 +15,17 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const supportedVoices = ['nova', 'shimmer', 'echo', 'onyx', 'fable', 'alloy'];
-
-    if (!supportedVoices.includes(voice)) {
-        console.error(`Unsupported voice: ${voice}.`);
-        res.status(400).send(`Unsupported voice: ${voice}`);
-        return;
-    }
-
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
+
+        // List of supported voices
+        const supportedVoices = ['nova', 'shimmer', 'echo', 'onyx', 'fable', 'alloy'];
+
+        if (!supportedVoices.includes(voice)) {
+            console.error(`Unsupported voice: ${voice}.`);
+            res.status(400).send(`Unsupported voice: ${voice}`);
+            return;
+        }
 
         // Clean dialogue by removing any text within brackets
         const cleanedDialogue = dialogue.replace(/\[(.*?)\]/g, '');
