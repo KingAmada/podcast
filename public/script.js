@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 2: Generate the conversation in chunks
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating conversation ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
