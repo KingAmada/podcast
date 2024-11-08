@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const { topicText, speakers, previousLines, linesPerChunk, promoText } = req.body;
+    const { topicText, speakers, previousLines, linesPerChunk, promoText, isFirstChunk, isLastChunk } = req.body;
 
     if (!topicText || !speakers || speakers.length < 2 || !linesPerChunk) {
         res.status(400).send('Missing or invalid parameters.');
@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
 
         // Build the prompt with context from previous lines
         let prompt = `
-You are to continue a podcast conversation between the following people:
+You are to generate a podcast conversation between the following people:
 
 ${speakerDescriptions}
 
@@ -41,7 +41,13 @@ An advertisement for the following product/service should be included at an appr
 
 "${promoText}"
 
-The advertisement should be introduced with a brief pause, like "Hey listeners, we'll be right back after this short break." A new speaker, "Ad Narrator", who isn't part of the main discussion, will present the advertisement positively.
+Instructions:
+
+- Begin the podcast with an introduction where the speakers welcome the listeners and mention the topic they will be discussing.
+- At an appropriate point before the advertisement, the speakers should mention they are taking a short break.
+- The advertisement should be presented by a new speaker, "Ad Narrator", who is not part of the main discussion.
+- After the advertisement, the conversation should resume naturally.
+- Conclude the podcast with the speakers providing closing remarks and thanking the listeners.
 
 Previous conversation:
 ${previousLines}
