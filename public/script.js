@@ -29,11 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const speakerConfig = document.createElement('div');
             speakerConfig.classList.add('speaker-config');
 
+            // Speaker Label
+            const speakerLabel = document.createElement('label');
+            speakerLabel.textContent = `Speaker ${i + 1}`;
+
             // Speaker Name Input
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.value = `Speaker${i + 1}`;
-            nameInput.placeholder = `Speaker ${i + 1} Name`;
+            nameInput.placeholder = `Name for Speaker ${i + 1}`;
 
             // Voice Selection Dropdown
             const voiceSelect = document.createElement('select');
@@ -49,8 +53,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const voiceIndex = i % availableVoices.length;
             voiceSelect.selectedIndex = voiceIndex;
 
+            // Personality Prompt Input
+            const personalityInput = document.createElement('input');
+            personalityInput.type = 'text';
+            personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
+            personalityInput.classList.add('personality-input');
+
+            // Update placeholder when name changes
+            nameInput.addEventListener('input', () => {
+                personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
+            });
+
+            // Append elements to speakerConfig
+            speakerConfig.appendChild(speakerLabel);
             speakerConfig.appendChild(nameInput);
             speakerConfig.appendChild(voiceSelect);
+            speakerConfig.appendChild(personalityInput);
 
             speakersContainer.appendChild(speakerConfig);
         }
@@ -112,11 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const speakers = [];
         const speakerConfigs = document.querySelectorAll('.speaker-config');
         speakerConfigs.forEach(config => {
-            const nameInput = config.querySelector('input');
+            const nameInput = config.querySelector('input[type="text"]');
             const voiceSelect = config.querySelector('select');
+            const personalityInput = config.querySelector('.personality-input');
             const name = nameInput.value.trim();
             const voice = voiceSelect.value;
-            speakers.push({ name, voice });
+            const personalityPrompt = personalityInput.value.trim();
+            speakers.push({ name, voice, personalityPrompt });
         });
 
         // Step 1: Estimate the number of lines needed
