@@ -282,26 +282,35 @@ document.addEventListener('DOMContentLoaded', () => {
         await Promise.all(workers);
     }
 
-    async function generateAudioBuffer(speaker, dialogue, voice) {
-        const response = await fetch('/api/generate-audio', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ speaker, dialogue, voice })
-        });
+async function generateAudioBuffer(speaker, dialogue, voice) {
+    const response = await fetch('/api/generate-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ speaker, dialogue, voice })
+    });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error generating audio: ${errorText}`);
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-
-        // Decode audio data into an AudioBuffer
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        return audioBuffer;
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error generating audio: ${errorText}`);
     }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Decode audio data into an AudioBuffer
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Adjustments for MP3 decoding
+    try {
+        const audioBuffer = await new Promise((resolve, reject) => {
+            audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+        });
+        return audioBuffer;
+    } catch (error) {
+        console.error('Error decoding audio data:', error);
+        throw error;
+    }
+}
+
 
     function playOverlappingAudio(conversation, audioBuffers) {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
