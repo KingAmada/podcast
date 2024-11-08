@@ -18,12 +18,20 @@ module.exports = async (req, res) => {
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
 
-        const speakerNames = speakers.map(s => s.name);
+        // Build speaker descriptions
+        const speakerDescriptions = speakers.map(speaker => {
+            if (speaker.personalityPrompt) {
+                return `${speaker.name}: ${speaker.personalityPrompt}`;
+            } else {
+                return `${speaker.name}: No specific personality prompt.`;
+            }
+        }).join('\n');
 
         // Build the prompt with context from previous lines
         let prompt = `
 You are to continue a podcast conversation between the following people:
-${speakerNames.join(', ')}.
+
+${speakerDescriptions}
 
 They are discussing the following topic:
 
@@ -37,7 +45,7 @@ Continue the conversation, ensuring coherence with the previous lines. The conti
 - Include natural interactions with interruptions, overlaps, and varied speaker order.
 - Use fillers like "um", "ah", "you know", "haha", "hmm".
 - Vary response lengths: single words and longer replies (2-3 sentences).
-- Reflect each speaker's personality.
+- Ensure each speaker's dialogue reflects their personality or instructions as described above.
 - Avoid repeating previous content.
 - Be approximately ${linesPerChunk} lines long.
 
