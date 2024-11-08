@@ -73,7 +73,7 @@ Provide the continuation now.
             body: JSON.stringify({
                 model: 'gpt-4o',
                 messages: messages,
-                max_tokens: 500,
+                max_tokens: 100,
                 temperature: 0.9
             })
         });
