@@ -63,7 +63,7 @@ Provide the continuation now.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: 'gpt-4o',
                 messages: messages,
                 max_tokens: 500,
                 temperature: 0.9
