@@ -7,17 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const conversationDiv = document.getElementById('conversation');
     const numSpeakersInput = document.getElementById('num-speakers');
     const speakersContainer = document.getElementById('speakers-container');
+    const adInput = document.getElementById('ad-input');
 
     const maxSpeakers = 6;
 
     // List of available voices
     const availableVoices = [
-        { name: 'Mina (Female)', value: 'nova' },
-        { name: 'Tina (Female)', value: 'shimmer' },
-        { name: 'James (Male)', value: 'echo' },
-        { name: 'Tom (Male)', value: 'onyx' },
-        { name: 'Jenny (Female)', value: 'fable' },
-        { name: 'Mike (Female)', value: 'alloy' }
+        { name: 'Nova', value: 'nova' },
+        { name: 'Shimmer', value: 'shimmer' },
+        { name: 'Echo', value: 'echo' },
+        { name: 'Onyx', value: 'onyx' },
+        { name: 'Fable', value: 'fable' },
+        { name: 'Alloy', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = textInput.value.trim();
         const durationInput = document.getElementById('podcast-duration');
         const desiredDuration = parseInt(durationInput.value);
+        const adText = adInput.value.trim();
 
         if (text === '') {
             alert('Please enter a topic for the podcast.');
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show loading animation
         showLoading();
 
-        startPodcastGeneration(text, desiredDuration)
+        startPodcastGeneration(text, desiredDuration, adText)
             .catch(error => {
                 console.error(error);
                 alert('An error occurred while generating the podcast.');
@@ -115,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    async function startPodcastGeneration(text, desiredDuration) {
+    async function startPodcastGeneration(text, desiredDuration, adText) {
         progressDiv.textContent = 'Generating conversation...';
         conversationDiv.innerHTML = '';
         let audioBuffers = [];
@@ -152,13 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 2: Generate the conversation in chunks
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            progressDiv.textContent = `Generating conversation ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
                 speakers,
                 previousLines,
-                linesPerChunk
+                linesPerChunk,
+                adText // Pass adText here
             );
 
             const chunkConversation = parseConversation(conversationText);
@@ -181,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Step 3: Generate audio for each line with concurrency limit
-        await generateAudioForConversation(conversation, speakers, audioBuffers);
+        await generateAudioForConversation(conversation, speakers);
 
         progressDiv.textContent = 'All audio generated. Preparing to play...';
 
@@ -196,11 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationDiv.appendChild(playButton);
     }
 
-    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk) {
+    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, adText) {
         const response = await fetch('/api/generate-conversation-chunk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk })
+            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, adText })
         });
 
         if (!response.ok) {
@@ -218,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         lines.forEach((line, index) => {
             // Match speaker and dialogue
-            const match = line.match(/^(\w+):\s*(.+)$/);
+            const match = line.match(/^([\w\s]+):\s*(.+)$/);
             if (match) {
                 let speaker = match[1].trim();
                 let dialogue = match[2].trim();
@@ -243,7 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return conversation;
     }
 
-    async function generateAudioForConversation(conversation, speakers, audioBuffers) {
+    async function generateAudioForConversation(conversation, speakers) {
+        const audioBuffers = [];
         const concurrencyLimit = 3; // Adjust based on testing
         let index = 0;
 
@@ -255,10 +259,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
-                    if (!speakerVoice) {
+
+                    let voiceToUse = speakerVoice;
+
+                    if (line.speaker === 'Ad Narrator') {
+                        voiceToUse = 'alloy'; // Choose a distinct voice for the ad narrator
+                    }
+
+                    if (!voiceToUse) {
                         throw new Error(`Voice not found for speaker ${line.speaker}`);
                     }
-                    const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, speakerVoice);
+
+                    const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, voiceToUse);
                     audioBuffers[i] = audioBuffer;
                 } catch (error) {
                     console.error(`Error generating audio for line ${i + 1}:`, error);
@@ -275,6 +287,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         await Promise.all(workers);
+
+        // Assign audioBuffers to the higher scope variable
+        window.audioBuffers = audioBuffers;
     }
 
     async function generateAudioBuffer(speaker, dialogue, voice) {
