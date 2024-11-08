@@ -32,6 +32,11 @@ body {
     }
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Title */
 h1 {
     font-size: 2.5em;
@@ -104,11 +109,11 @@ button:disabled {
     flex-wrap: wrap;
     justify-content: space-between;
     margin: 20px 0;
-    gap: 20px;
+    gap: 20px; /* Adds space between the duration and number of speakers */
 }
 
 .settings-row > div {
-    flex: 1 1 calc(50% - 10px);
+    flex: 1 1 calc(50% - 10px); /* Adjusted width to account for the gap */
     margin-bottom: 10px;
 }
 
