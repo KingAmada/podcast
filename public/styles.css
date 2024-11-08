@@ -106,7 +106,7 @@ button:disabled {
     margin: 20px 0;
 }
 
-.settings-row .duration {
+.settings-row .podcast-duration {
     margin-right: 20px; /* Margin for separating duration and speakers */
 }
 .settings-row > div {
