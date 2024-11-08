@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let voiceToUse = speakerVoice;
 
                     if (line.speaker === 'Ad Narrator') {
-                        voiceToUse = 'alloy'; // Choose a distinct voice for the ad narrator
+                        voiceToUse = 'shimmer'; // Choose a distinct voice for the ad narrator
                     }
 
                     if (!voiceToUse) {
