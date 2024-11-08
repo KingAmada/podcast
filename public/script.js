@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressDiv.textContent = 'Generating conversation...';
         conversationDiv.innerHTML = '';
         let audioBuffers = [];
+        let conversation = [];
 
         // Get speaker settings
         const speakers = [];
@@ -111,41 +112,48 @@ document.addEventListener('DOMContentLoaded', () => {
             speakers.push({ name, voice });
         });
 
-        // Step 1: Generate the full conversation
-        const conversationText = await generateFullConversation(text, speakers);
+        // Define the number of chunks and the number of lines per chunk
+        const totalChunks = 3; // Adjust this number as needed
+        const linesPerChunk = 7; // Total desired lines divided by totalChunks
 
-        // Step 2: Parse the conversation
-        const conversation = parseConversation(conversationText);
+        let previousLines = ''; // To keep track of previous lines for context
 
-        // Display the conversation
-        conversation.forEach(line => {
-            const lineDiv = document.createElement('div');
-            let content = `${line.speaker}: ${line.dialogue}`;
-            lineDiv.textContent = content;
-            conversationDiv.appendChild(lineDiv);
-        });
+        // Step 1: Generate the conversation in chunks
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
 
-        // Step 3: Generate audio for each line
-        for (let i = 0; i < conversation.length; i++) {
-            const line = conversation[i];
-            progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
-            try {
-                const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
-                if (!speakerVoice) {
-                    throw new Error(`Voice not found for speaker ${line.speaker}`);
-                }
-                const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, speakerVoice);
-                audioBuffers.push(audioBuffer);
-            } catch (error) {
-                console.error(`Error generating audio for line ${i + 1}:`, error);
-                alert(`Error generating audio for line ${i + 1}. Check console for details.`);
-                return;
-            }
+            const conversationText = await generateConversationChunk(
+                text,
+                speakers,
+                previousLines,
+                linesPerChunk
+            );
+
+            const chunkConversation = parseConversation(conversationText);
+
+            // Update previousLines with the last few lines for context
+            previousLines = chunkConversation
+                .slice(-2)
+                .map(line => `${line.speaker}: ${line.dialogue}`)
+                .join('\n');
+
+            conversation = conversation.concat(chunkConversation);
+
+            // Display the conversation as it gets generated
+            chunkConversation.forEach(line => {
+                const lineDiv = document.createElement('div');
+                let content = `${line.speaker}: ${line.dialogue}`;
+                lineDiv.textContent = content;
+                conversationDiv.appendChild(lineDiv);
+            });
         }
+
+        // Step 2: Generate audio for each line with concurrency limit
+        await generateAudioForConversation(conversation, speakers, audioBuffers);
 
         progressDiv.textContent = 'All audio generated. Preparing to play...';
 
-        // Step 4: Create and display the play button
+        // Step 3: Create and display the play button
         const playButton = document.createElement('button');
         playButton.textContent = 'Play Podcast';
         playButton.classList.add('play-button');
@@ -156,16 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationDiv.appendChild(playButton);
     }
 
-    async function generateFullConversation(topicText, speakers) {
-        const response = await fetch('/api/generate-conversation', {
+    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk) {
+        const response = await fetch('/api/generate-conversation-chunk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topicText, speakers })
+            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Error generating conversation: ${errorText}`);
+            throw new Error(`Error generating conversation chunk: ${errorText}`);
         }
 
         const data = await response.json();
@@ -183,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let speaker = match[1].trim();
                 let dialogue = match[2].trim();
 
-                // Check for interruptions (dialogue ending with '--')
+                // Check for interruptions
                 const isInterruption = dialogue.endsWith('--');
                 const isContinuation = dialogue.startsWith('--');
 
@@ -201,6 +209,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return conversation;
+    }
+
+    async function generateAudioForConversation(conversation, speakers, audioBuffers) {
+        const concurrencyLimit = 3; // Adjust based on testing
+        let index = 0;
+
+        async function worker() {
+            while (index < conversation.length) {
+                const i = index++;
+                const line = conversation[i];
+                progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
+
+                try {
+                    const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
+                    if (!speakerVoice) {
+                        throw new Error(`Voice not found for speaker ${line.speaker}`);
+                    }
+                    const audioBuffer = await generateAudioBuffer(line.speaker, line.dialogue, speakerVoice);
+                    audioBuffers[i] = audioBuffer;
+                } catch (error) {
+                    console.error(`Error generating audio for line ${i + 1}:`, error);
+                    alert(`Error generating audio for line ${i + 1}. Check console for details.`);
+                    throw error;
+                }
+            }
+        }
+
+        // Start workers
+        const workers = [];
+        for (let i = 0; i < concurrencyLimit; i++) {
+            workers.push(worker());
+        }
+
+        await Promise.all(workers);
     }
 
     async function generateAudioBuffer(speaker, dialogue, voice) {
