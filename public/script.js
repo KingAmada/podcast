@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function startPodcastGeneration(text, desiredDuration, promoText) {
         progressDiv.textContent = 'Generating conversation...';
         conversationDiv.innerHTML = '';
-        let audioBuffers = [];
+        let audioBuffers = []; // This will be filled with the generated audio buffers
         let conversation = [];
 
         // Get speaker settings
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 2: Generate the conversation in chunks
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            progressDiv.textContent = `Generating podcast ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating conversation chunk ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Step 3: Generate audio for each line with concurrency limit
-        await generateAudioForConversation(conversation, speakers);
+        audioBuffers = await generateAudioForConversation(conversation, speakers);
 
         progressDiv.textContent = 'All audio generated. Preparing to play...';
 
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             while (index < conversation.length) {
                 const i = index++;
                 const line = conversation[i];
-                progressDiv.textContent = `Generating podcast ${i + 1} of ${conversation.length}...`;
+                progressDiv.textContent = `Generating audio ${i + 1} of ${conversation.length}...`;
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
@@ -288,8 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await Promise.all(workers);
 
-        // Assign audioBuffers to the higher scope variable
-        window.audioBuffers = audioBuffers;
+        // Return the audioBuffers array
+        return audioBuffers;
     }
 
     async function generateAudioBuffer(speaker, dialogue, voice) {
@@ -321,6 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playOverlappingAudio(conversation, audioBuffers) {
+        if (!audioBuffers || audioBuffers.length === 0) {
+            alert('No audio buffers available for playback.');
+            return;
+        }
+
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
         let currentTime = audioContext.currentTime;
@@ -363,9 +368,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle end of playback
         const lastSource = sources[sources.length - 1];
-        lastSource.onended = () => {
-            progressDiv.textContent = 'Podcast playback finished!';
-        };
+        if (lastSource) {
+            lastSource.onended = () => {
+                progressDiv.textContent = 'Podcast playback finished!';
+            };
+        } else {
+            alert('No audio sources to play.');
+        }
     }
 
     // Loading animations
