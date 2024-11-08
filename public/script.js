@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const conversationDiv = document.getElementById('conversation');
     const numSpeakersInput = document.getElementById('num-speakers');
     const speakersContainer = document.getElementById('speakers-container');
-    const adInput = document.getElementById('ad-input');
+    const promoInput = document.getElementById('promo-input');
 
     const maxSpeakers = 6;
 
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = textInput.value.trim();
         const durationInput = document.getElementById('podcast-duration');
         const desiredDuration = parseInt(durationInput.value);
-        const adText = adInput.value.trim();
+        const promoText = promoInput.value.trim();
 
         if (text === '') {
             alert('Please enter a topic for the podcast.');
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show loading animation
         showLoading();
 
-        startPodcastGeneration(text, desiredDuration, adText)
+        startPodcastGeneration(text, desiredDuration, promoText)
             .catch(error => {
                 console.error(error);
                 alert('An error occurred while generating the podcast.');
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    async function startPodcastGeneration(text, desiredDuration, adText) {
+    async function startPodcastGeneration(text, desiredDuration, promoText) {
         progressDiv.textContent = 'Generating conversation...';
         conversationDiv.innerHTML = '';
         let audioBuffers = [];
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 speakers,
                 previousLines,
                 linesPerChunk,
-                adText // Pass adText here
+                promoText // Pass promoText here
             );
 
             const chunkConversation = parseConversation(conversationText);
@@ -199,11 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationDiv.appendChild(playButton);
     }
 
-    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, adText) {
+    async function generateConversationChunk(topicText, speakers, previousLines, linesPerChunk, promoText) {
         const response = await fetch('/api/generate-conversation-chunk', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, adText })
+            body: JSON.stringify({ topicText, speakers, previousLines, linesPerChunk, promoText })
         });
 
         if (!response.ok) {
