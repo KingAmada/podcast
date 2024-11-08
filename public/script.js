@@ -12,63 +12,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of available voices
     const availableVoices = [
-        { name: 'Emma (Female)', value: 'nova' },
-        { name: 'Jenny (Female)', value: 'shimmer' },
-        { name: 'John (Male)', value: 'echo' },
-        { name: 'Mike (Male)', value: 'onyx' },
-        { name: 'Tina (Female)', value: 'fable' },
-        { name: 'Moses (Male)', value: 'alloy' }
+        { name: 'Mina (Female)', value: 'nova' },
+        { name: 'Tina (Female)', value: 'shimmer' },
+        { name: 'James (Male)', value: 'echo' },
+        { name: 'Tom (Male)', value: 'onyx' },
+        { name: 'Jenny (Female)', value: 'fable' },
+        { name: 'Mike (Female)', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
     function initializeSpeakers() {
-    const numSpeakers = parseInt(numSpeakersInput.value);
-    speakersContainer.innerHTML = '';
+        const numSpeakers = parseInt(numSpeakersInput.value);
+        speakersContainer.innerHTML = '';
 
-    for (let i = 0; i < numSpeakers; i++) {
-        const speakerConfig = document.createElement('div');
-        speakerConfig.classList.add('speaker-config');
+        for (let i = 0; i < numSpeakers; i++) {
+            const speakerConfig = document.createElement('div');
+            speakerConfig.classList.add('speaker-config');
 
-        // Speaker Name Input
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = `Speaker${i + 1}`;
-        nameInput.placeholder = `Name`;
+            // Speaker Name Input
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = `Speaker${i + 1}`;
+            nameInput.placeholder = `Name`;
 
-        // Voice Selection Dropdown
-        const voiceSelect = document.createElement('select');
+            // Voice Selection Dropdown
+            const voiceSelect = document.createElement('select');
 
-        availableVoices.forEach(voice => {
-            const option = document.createElement('option');
-            option.value = voice.value;
-            option.textContent = voice.name;
-            voiceSelect.appendChild(option);
-        });
+            availableVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.value;
+                option.textContent = voice.name;
+                voiceSelect.appendChild(option);
+            });
 
-        // Assign voices in order
-        const voiceIndex = i % availableVoices.length;
-        voiceSelect.selectedIndex = voiceIndex;
+            // Assign voices in order
+            const voiceIndex = i % availableVoices.length;
+            voiceSelect.selectedIndex = voiceIndex;
 
-        // Personality Prompt Input
-        const personalityInput = document.createElement('input');
-        personalityInput.type = 'text';
-        personalityInput.placeholder = `Personality prompt`;
-        personalityInput.classList.add('personality-input');
+            // Personality Prompt Input
+            const personalityInput = document.createElement('input');
+            personalityInput.type = 'text';
+            personalityInput.placeholder = `Personality prompt`;
+            personalityInput.classList.add('personality-input');
 
-        // Update placeholder when name changes
-        nameInput.addEventListener('input', () => {
-            personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
-        });
+            // Update placeholder when name changes
+            nameInput.addEventListener('input', () => {
+                personalityInput.placeholder = `Personality prompt for ${nameInput.value}`;
+            });
 
-        // Append elements to speakerConfig
-        speakerConfig.appendChild(nameInput);
-        speakerConfig.appendChild(voiceSelect);
-        speakerConfig.appendChild(personalityInput);
+            // Append elements to speakerConfig
+            speakerConfig.appendChild(nameInput);
+            speakerConfig.appendChild(voiceSelect);
+            speakerConfig.appendChild(personalityInput);
 
-        speakersContainer.appendChild(speakerConfig);
+            speakersContainer.appendChild(speakerConfig);
+        }
     }
-}
-
 
     // Event listener for changes in the number of speakers
     numSpeakersInput.addEventListener('change', () => {
@@ -278,35 +277,33 @@ document.addEventListener('DOMContentLoaded', () => {
         await Promise.all(workers);
     }
 
-async function generateAudioBuffer(speaker, dialogue, voice) {
-    const response = await fetch('/api/generate-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speaker, dialogue, voice })
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error generating audio: ${errorText}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-
-    // Decode audio data into an AudioBuffer
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Adjustments for MP3 decoding
-    try {
-        const audioBuffer = await new Promise((resolve, reject) => {
-            audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+    async function generateAudioBuffer(speaker, dialogue, voice) {
+        const response = await fetch('/api/generate-audio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ speaker, dialogue, voice })
         });
-        return audioBuffer;
-    } catch (error) {
-        console.error('Error decoding audio data:', error);
-        throw error;
-    }
-}
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error generating audio: ${errorText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+
+        // Decode audio data into an AudioBuffer
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        try {
+            const audioBuffer = await new Promise((resolve, reject) => {
+                audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+            });
+            return audioBuffer;
+        } catch (error) {
+            console.error('Error decoding audio data:', error);
+            throw error;
+        }
+    }
 
     function playOverlappingAudio(conversation, audioBuffers) {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -327,22 +324,23 @@ async function generateAudioBuffer(speaker, dialogue, voice) {
             // Determine when to start the audio source
             let startTime = currentTime;
 
-            if (i > 0 && conversation[i - 1].isInterruption) {
-                // Overlap with the previous audio by starting earlier
+            if (line.isInterruption) {
+                // Start earlier to overlap with the previous speaker
                 startTime -= overlapDuration;
+                if (startTime < audioContext.currentTime) {
+                    startTime = audioContext.currentTime;
+                }
             }
 
             source.start(startTime);
 
             sources.push(source);
 
-            // Calculate the duration to add to currentTime
-            const bufferDuration = buffer.duration;
-
+            // Update currentTime based on whether this line is an interruption
             if (line.isInterruption) {
-                currentTime += bufferDuration - overlapDuration;
+                currentTime += buffer.duration - overlapDuration;
             } else {
-                currentTime += bufferDuration;
+                currentTime += buffer.duration;
             }
         }
 
