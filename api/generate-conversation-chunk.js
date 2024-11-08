@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const { topicText, speakers, previousLines, linesPerChunk, adText } = req.body;
+    const { topicText, speakers, previousLines, linesPerChunk, promoText } = req.body;
 
     if (!topicText || !speakers || speakers.length < 2 || !linesPerChunk) {
         res.status(400).send('Missing or invalid parameters.');
@@ -39,7 +39,7 @@ They are discussing the following topic:
 
 An advertisement for the following product/service should be included at an appropriate point in the conversation:
 
-"${adText}"
+"${promoText}"
 
 The advertisement should be introduced with a brief pause, like "Hey listeners, we'll be right back after this short break." A new speaker, "Ad Narrator", who isn't part of the main discussion, will present the advertisement positively.
 
