@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // List of available voices
     const availableVoices = [
-        { name: 'Female', value: 'nova' },
-        { name: 'Female', value: 'shimmer' },
-        { name: 'Male', value: 'echo' },
-        { name: 'Male', value: 'onyx' },
-        { name: 'Female', value: 'fable' },
-        { name: 'Male', value: 'alloy' }
+        { name: 'Emma (Female)', value: 'nova' },
+        { name: 'Jenny (Female)', value: 'shimmer' },
+        { name: 'John (Male)', value: 'echo' },
+        { name: 'Mike (Male)', value: 'onyx' },
+        { name: 'Tina (Female)', value: 'fable' },
+        { name: 'Moses (Male)', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
