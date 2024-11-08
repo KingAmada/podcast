@@ -201,8 +201,7 @@ button:disabled {
     text-align: left;
 }
 
-.ad-section label {
-    display: block;
+.ad-section label { 
     margin-bottom: 5px;
     font-weight: bold;
     color: #fff;
