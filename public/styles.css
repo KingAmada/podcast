@@ -109,6 +109,7 @@ button:disabled {
 .settings-row > div {
     flex: 1 1 48%;
     margin-bottom: 10px;
+    
 }
 
 .settings-row label {
@@ -124,6 +125,7 @@ button:disabled {
 
 #podcast-settings input[type="number"] {
     width: 100%;
+    margin-right: 20px;
 }
 
 /* Speaker Configurations */
