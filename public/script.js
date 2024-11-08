@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: 'Tina (Female)', value: 'shimmer' },
         { name: 'James (Male)', value: 'echo' },
         { name: 'Bond (Male)', value: 'onyx' },
-        { name: 'Marjane (Female)', value: 'fable' },
-        { name: 'Thomas (Male)', value: 'alloy' }
+        { name: 'Pinta (Female)', value: 'fable' },
+        { name: 'Adam (Male)', value: 'alloy' }
     ];
 
     // Initialize speaker configurations
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dramaticSource.start(startTime);
 
                 // Ensure both sources stop at the same time
-                const adDuration = Math.max(buffer.duration, dramaticSoundBuffer.duration);
+                const adDuration = buffer.duration; // Use the ad narration duration
                 source.stop(startTime + adDuration);
                 dramaticSource.stop(startTime + adDuration);
             }
@@ -466,9 +466,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If this is the ad narration, mix in the dramatic sound
                 if (line.speaker === 'Ad Narrator' && dramaticSoundBuffer) {
                     const dramaticData = dramaticSoundBuffer.getChannelData(channel);
-                    const length = Math.min(bufferData.length, dramaticData.length);
 
-                    for (let j = 0; j < length; j++) {
+                    const length = bufferData.length; // Use the length of the ad narration buffer
+                    const dramaticDataLength = dramaticData.length;
+                    const mixLength = Math.min(length, dramaticDataLength);
+
+                    for (let j = 0; j < mixLength; j++) {
                         combinedData[offset + j] += dramaticData[j] * 0.5; // Adjust volume as needed
                     }
                 }
