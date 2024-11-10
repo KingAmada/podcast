@@ -1,7 +1,6 @@
 // api/generate-conversation-chunk.js
 
 const fetch = require('node-fetch');
-require('dotenv').config(); // Ensure environment variables are loaded
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -19,12 +18,6 @@ module.exports = async (req, res) => {
     try {
         const openai_api_key = process.env.OPENAI_API_KEY;
 
-        if (!openai_api_key) {
-            console.error('OpenAI API key is not set.');
-            res.status(500).send('Server error: OpenAI API key is not configured.');
-            return;
-        }
-
         // Build speaker descriptions
         const speakerDescriptions = speakers.map(speaker => {
             if (speaker.personalityPrompt) {
@@ -33,6 +26,7 @@ module.exports = async (req, res) => {
                 return `${speaker.name}: No specific personality prompt.`;
             }
         }).join('\n');
+
 
         // Conditional instructions
         let introInstruction = '';
