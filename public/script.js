@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFirstChunk = chunkIndex === 0;
             const isLastChunk = chunkIndex === totalChunks - 1;
 
-            progressDiv.textContent = `Generating Podcast ${chunkIndex + 1} of ${totalChunks}...`;
+            progressDiv.textContent = `Generating podcast ${chunkIndex + 1} of ${totalChunks}...`;
 
             const conversationText = await generateConversationChunk(
                 text,
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             while (index < conversation.length) {
                 const i = index++;
                 const line = conversation[i];
-                progressDiv.textContent = `Generating Podcast ${i + 1} of ${conversation.length}...`;
+                progressDiv.textContent = `Generating podcast ${i + 1} of ${conversation.length}...`;
 
                 try {
                     const speakerVoice = speakers.find(s => s.name === line.speaker)?.voice;
