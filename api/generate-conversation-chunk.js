@@ -99,7 +99,7 @@ Provide the continuation now.
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
+                model: 'gpt-4',
                 messages: messages,
                 max_tokens: 500,
                 temperature: 1.0
